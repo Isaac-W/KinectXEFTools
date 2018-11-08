@@ -154,4 +154,5 @@ $RECYCLE.BIN/
 
 # Mac desktop service store files
 .DS_Store
-/KinectWindowsApps/*.suo
+*.suo
+.vs/
