@@ -1,0 +1,133 @@
+Kinect XEF Files
+================
+
+(Little endian)
+(Depth -> IR -> Long exposure IR; these all have same size and time)
+
+HEADER
+-------------------------
+"EVENTS1" - 8 byte ASCII string
+
+Unknown - int (4 bytes)
+Ex: 5 (0x05000000)
+
+Number of streams (count is inflated by +1) - int (4 bytes)
+Ex: 12 (0x0C000000)
+
+
+(Has strings representing Kinect metadata - version, serial, etc.)
+
+
+STREAM DESCRIPTIONS (Length: 0x1E6 - 486 bytes)
+-------------------------
+Starts at 0x4B4
+
+Stream Index - int (4 bytes)
+Ex: 03 00 00 00
+Address for depth: 0x00000880
+(Starts at 1)
+
+Unknown chunk of memory (24 bytes)
+
+Data Type ID - GUID (16 bytes)
+
+Null (4 bytes)
+
+Stream name (string - 256 bytes or 128 two-byte characters)
+
+Unknown (2 byte short) - 0x3333
+(Special cookie value?)
+
+Tag size (2 byte short) - Ex: 0x0400
+
+Unknown (4 bytes) - 1024 (0x00040000)
+(Same for every stream)
+
+Null (4 bytes)
+
+Stream Index (int - 4 bytes)
+
+Unknown chunk of memory (46 bytes)
+
+Stream Index (int - 4 bytes)
+
+Unknown chunk of memory (22 bytes)
+
+Unknown GUID (string - 78 bytes - widechar - null terminated)
+
+Semantic ID - GUID (16 bytes)
+
+
+STREAM DATA
+-------------------------
+Starts at 0x4B4 + 0x1E6 * # of streams
+
+** HEADER (Length 0x18 - 24 bytes)
+
+Stream Index - uint (4 bytes)
+Data Size - uint (4 bytes)
+Event Time - TimeSpan (8 bytes)
+
+Unknown (4 bytes) -- some sort of timestamp or increasing index
+Data Size - uint (4 bytes)
+
+** TAG
+
+Frame - uint (4 bytes) -- usually the case unless there is no tag
+
+** RECORD
+
+Raw Data (variable length)
+
+
+NUI CALIBRATION DATA
+-------------------------
+Data Size (4 bytes)
+Ex: 1736836 (0x84801A00)
+
+Event Time (8 bytes)
+Ex: 00:00:00.0267193
+
+...
+
+
+DEPTH
+-------------------------
+Stream Index - int (4 bytes)
+Ex: 03 00 00 00
+
+Data Size - int (4 bytes)
+Ex: 434176
+0x001a9a3a to 0x001a9a3d
+
+TimeSpan - long (8 bytes)
+Ex: 0.0239968
+
+Unknown - int (4 bytes)
+Ex: 77 D0 AF F5 -> 4121940087
+
+...
+
+Data Size - int (4 bytes)
+
+Frame - int/long? (4/8 bytes)
+Ex: 0D 02 00 00 -> 525
+(Next frame was 526)
+-> Kinect event index (not relative index)
+
+Raw depth data (data size - 6a000)
+
+(2nd frame starts at 0x00719f36)
+
+
+SENSOR TELEMETRY DATA
+-------------------------
+Header: Length 0x18 (24 bytes)
+
+
+FOOTER
+-------------------------
+Stream Index - int (0x0000FFFF)
+(Unknown data; may be metadata on each frame?)
+(Lots of repeated timestamps and data sizes)
+
