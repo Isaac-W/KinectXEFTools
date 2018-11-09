@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using System.IO;
+using System.IO.Compression;
 using System.Collections.Generic;
 
 namespace KinectXEFTools
@@ -72,6 +73,8 @@ namespace KinectXEFTools
 		
 		public Guid SemanticId { get; private set; }
 
+        public bool IsCompressed { get; private set; }
+
         public void IncrementEventCount()
         {
             EventCount++;
@@ -118,6 +121,10 @@ namespace KinectXEFTools
 
         public byte[] EventData { get; private set; }
 
+        public byte[] RawEventData { get; private set; }
+
+        public bool IsCompressed { get; private set; }
+
         public uint Unknown { get; private set; } // TODO Unknown data found in event (could be some index or id)
 	}
 	
@@ -132,15 +139,20 @@ namespace KinectXEFTools
                       
 		private const int STREAM_DESC_START_ADDRESS = 0x4B4;
 		private const int STREAM_DESC_SIZE = 486;
+        private const int STREAM_ARC_DESC_SIZE = 494; // archived stream description
                       
 		private const int STREAM_INDEX_SIZE = 4; // int
-		private const int STREAM_UNK1_SIZE = 24;
-		private const int STREAM_TYPID_SIZE = 16; // guid
+        private const int STREAM_UNK1_SIZE = 4;
+        private const int STREAM_NULL_SIZE = 8;
 		private const int STREAM_UNK2_SIZE = 4;
+        private const int STREAM_KEY_SIZE = 4;
+		private const int STREAM_TYPID_SIZE = 16; // guid
+		private const int STREAM_UNK3_SIZE = 4;
 		private const int STREAM_NAME_SIZE = 256; // wstr
-		private const int STREAM_UNK3_SIZE = 2;
+		private const int STREAM_UNK4_SIZE = 2;
 		private const int STREAM_TAG_SIZE = 2; // ushort
-		private const int STREAM_UNK4_SIZE = 162;
+		private const int STREAM_UNK5_SIZE = 162;
+        private const int STREAM_ARC_UNK5_SIZE = 170; // larger for archived stream
 		private const int STREAM_SEMID_SIZE = 16; // guid
                       
 		private const int EVENT_HEADER_SIZE = 24;
@@ -165,6 +177,8 @@ namespace KinectXEFTools
         public bool EndOfStream { get; private set; }
 
         public int StreamCount { get { return _streams.Count; } }
+
+        public bool IsCompressed { get; private set; }
 
         //
         //	Constructor
@@ -232,16 +246,17 @@ namespace KinectXEFTools
                 if (streamIndex == 0xFFFF)
                 {
                     // This XEF is archived!
-                    // TODO
+                    IsCompressed = true;
                 }
 
-                _reader.ReadBytes(STREAM_UNK1_SIZE);
+                // Read stream description (TODO make class/struct once we have more info)
+                _reader.ReadBytes(STREAM_UNK2_SIZE);
                 Guid dataTypeId = new Guid(_reader.ReadBytes(STREAM_TYPID_SIZE));
                 _reader.ReadBytes(STREAM_UNK2_SIZE);
                 string dataTypeName = Encoding.Unicode.GetString(_reader.ReadBytes(STREAM_NAME_SIZE)).TrimEnd('\0');
-                _reader.ReadBytes(STREAM_UNK3_SIZE);
-                int tagSize = _reader.ReadInt16();
                 _reader.ReadBytes(STREAM_UNK4_SIZE);
+                int tagSize = _reader.ReadInt16();
+                _reader.ReadBytes(STREAM_UNK5_SIZE);
                 Guid semanticId = new Guid(_reader.ReadBytes(STREAM_SEMID_SIZE));
 
                 _streams[streamIndex] = new XEFStream(streamIndex, tagSize, dataTypeName, dataTypeId, semanticId);

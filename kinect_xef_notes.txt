@@ -18,15 +18,20 @@ Ex: 12 (0x0C000000)
 (Has strings representing Kinect metadata - version, serial, etc.)
 
 
+================================================
+
 ARCHIVED STREAM DESCRIPTIONS (Length: 0x1EE - 494 bytes)
 ----------------------------
 Original 0x4B4 offset has 0xFFFF instead!
 Then unknown null data for length 0xC018
 Streams start at 0xC4CC
-Data immediately follows each stream
 
 Stream Index - int (4 bytes)
-Unknown chunk of memory (24 bytes - 0x18)
+Unknown value A (4 bytes) -- must be some kind of size
+Null (8 bytes)
+Unknown value B (4 bytes)
+Unknown value A (4 bytes)
+Stream Key (4 bytes)
 DataType - GUID (16 bytes)
 Null (4 bytes)
 Stream name (string 256 bytes - 0x100)
@@ -34,29 +39,32 @@ Unknown (2 byte short) - 0x3333
 Tag size (2 byte short)
 Unknown (4 bytes) - 1024 (0x00040000)
 Null (4 bytes)
-Stream Key B? (4 bytes)
+Stream Key? (4 bytes)
 Unknown chunk of memory (80 bytes - 0x50)   <----
 Unknown GUID (78 byte string - 0x4E)
 Semantic ID - GUID (16 bytes)
+
+Data immediately follows each stream
 
 
 ARCHIVED STREAM EVENTS
 ----------------------
 
-Stream Key B? (4 bytes)  -- looks like 2 bytes Id, 2 bytes sub Id (0x05000100)
-
+Stream Key (4 bytes) -- looks like 2 bytes Id, 2 bytes "is compressed" (0x05000100)
 Event data size (4 bytes) - F6 B6 02 00 (0x2b6f6 - 177910)
-
 Timestamp (8 bytes)
-
 Unknown (4 bytes)
-
-Original data size (4 bytes) - 00 A0 06 00 (0x6a000 - 434176)
-
+Original data size (4 bytes) - Ex: Depth has 00A00600 (0x6a000 - 434176)
 Tag (usually frame -- 4 bytes)
 
-Data*
+Data* -- compressed (see below)
 
+
+DATA COMPRESSION
+----------------
+
+Data for every event is compressed using zlib format -- (0x7801 signature)
+C# DeflateStream can be used; this is slower than nonarchived data! -- should just compress the whole file
 
 =========================================
 
@@ -65,12 +73,13 @@ STREAM DESCRIPTIONS (Length: 0x1E6 - 486 bytes)
 -------------------------
 Starts at 0x4B4
 
-Stream Index - int (4 bytes)
-Ex: 03 00 00 00
-Address for depth: 0x00000880
-(Starts at 1)
+Stream Index - int (4 bytes) Ex: 03 00 00 00 (Starts at 1)
 
-Unknown chunk of memory (24 bytes)
+Unknown value A (4 bytes)
+Null (8 bytes)
+Unknown value B (4 bytes)
+Unknown value A (4 bytes)
+Stream Key (4 bytes)
 
 Data Type ID - GUID (16 bytes)
 
@@ -78,13 +87,9 @@ Null (4 bytes)
 
 Stream name (string - 256 bytes or 128 two-byte characters)
 
-Unknown (2 byte short) - 0x3333
-(Special cookie value?)
-
+Unknown (2 byte short) - 0x3333 (Special cookie value?)
 Tag size (2 byte short) - Ex: 0x0400
-
-Unknown (4 bytes) - 1024 (0x00040000)
-(Same for every stream)
+Unknown (4 bytes) - 1024 (0x00040000) (Same for every stream)
 
 Null (4 bytes)
 
@@ -97,7 +102,6 @@ Stream Index? (int - 4 bytes)
 Unknown chunk of memory (22 bytes)
 
 Unknown GUID (string - 78 bytes - widechar - null terminated)
-
 Semantic ID - GUID (16 bytes)
 
 
