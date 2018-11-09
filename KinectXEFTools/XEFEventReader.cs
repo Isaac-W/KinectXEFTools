@@ -95,7 +95,7 @@ namespace KinectXEFTools
             Unknown = unknown;
 
             EventIndex = EventStream.EventCount;
-            EventStream.IncrementEventCount();
+            EventStream.IncrementEventCount(); // Need to tell stream that an event has been added
         }
 		
 		public XEFStream EventStream { get; private set; }
@@ -155,12 +155,22 @@ namespace KinectXEFTools
 		private Dictionary<int, XEFStream> _streams;
 		
 		private BinaryReader _reader;
-		
-		//
-		//	Constructor
-		//
-		
-		public XEFEventReader(string path)
+
+        //
+        //	Properties
+        //
+
+        public string FilePath { get; private set; }
+
+        public bool EndOfStream { get; private set; }
+
+        public int StreamCount { get { return _streams.Count; } }
+
+        //
+        //	Constructor
+        //
+
+        public XEFEventReader(string path)
 		{
             FilePath = path;
 			_reader = new BinaryReader(File.Open(path, FileMode.Open));
@@ -168,17 +178,23 @@ namespace KinectXEFTools
 			InitializeStreams();
 			SeekToEvents();
 		}
-		
-		//
-		//	IDisposable
-		//
-		
-		private bool disposed = false;
+
+        ~XEFEventReader()
+        {
+            Dispose(false);
+        }
+
+        //
+        //	IDisposable
+        //
+
+        private bool disposed = false;
 		
 		public void Dispose()
 		{
 			Dispose(true);
-		}
+            GC.SuppressFinalize(this);
+        }
 		
 		protected virtual void Dispose(bool disposing)
 		{
@@ -193,16 +209,6 @@ namespace KinectXEFTools
 				disposed = true;
 			}
 		}
-		
-		//
-		//	Properties
-		//
-		
-        public string FilePath { get; private set; }
-
-		public bool EndOfStream { get; private set; }
-		
-		public int StreamCount { get { return _streams.Count; } }
 		
 		//
 		//	Methods
@@ -222,6 +228,13 @@ namespace KinectXEFTools
             for (int i = 0; i < streamCount; i++)
             {
                 int streamIndex = _reader.ReadInt32();
+
+                if (streamIndex == 0xFFFF)
+                {
+                    // This XEF is archived!
+                    // TODO
+                }
+
                 _reader.ReadBytes(STREAM_UNK1_SIZE);
                 Guid dataTypeId = new Guid(_reader.ReadBytes(STREAM_TYPID_SIZE));
                 _reader.ReadBytes(STREAM_UNK2_SIZE);

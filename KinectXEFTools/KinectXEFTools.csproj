@@ -45,6 +45,8 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WavFileWriter.cs" />
+    <Compile Include="XEFAudioData.cs" />
     <Compile Include="XEFDataConverter.cs" />
     <Compile Include="XEFEventReader.cs" />
   </ItemGroup>
