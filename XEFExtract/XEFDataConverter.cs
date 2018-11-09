@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using KinectXEFTools;
+using System;
 using System.IO;
+using System.Collections.Generic;
 
-namespace KinectXEFTools
+namespace XEFExtract
 {
     public class XEFDataConverter : IDisposable
     {
