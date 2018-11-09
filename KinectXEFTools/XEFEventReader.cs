@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.IO;
 using System.Collections.Generic;
 
@@ -75,7 +76,12 @@ namespace KinectXEFTools
         {
             EventCount++;
         }
-	}
+
+        public override string ToString()
+        {
+            return Name;
+        }
+    }
 	
 	public class XEFEvent
 	{
@@ -156,6 +162,7 @@ namespace KinectXEFTools
 		
 		public XEFEventReader(string path)
 		{
+            FilePath = path;
 			_reader = new BinaryReader(File.Open(path, FileMode.Open));
 			
 			InitializeStreams();
@@ -191,6 +198,8 @@ namespace KinectXEFTools
 		//	Properties
 		//
 		
+        public string FilePath { get; private set; }
+
 		public bool EndOfStream { get; private set; }
 		
 		public int StreamCount { get { return _streams.Count; } }
@@ -216,7 +225,7 @@ namespace KinectXEFTools
                 _reader.ReadBytes(STREAM_UNK1_SIZE);
                 Guid dataTypeId = new Guid(_reader.ReadBytes(STREAM_TYPID_SIZE));
                 _reader.ReadBytes(STREAM_UNK2_SIZE);
-                string dataTypeName = BitConverter.ToString(_reader.ReadBytes(STREAM_NAME_SIZE));
+                string dataTypeName = Encoding.Unicode.GetString(_reader.ReadBytes(STREAM_NAME_SIZE)).TrimEnd('\0');
                 _reader.ReadBytes(STREAM_UNK3_SIZE);
                 int tagSize = _reader.ReadInt16();
                 _reader.ReadBytes(STREAM_UNK4_SIZE);
@@ -246,7 +255,6 @@ namespace KinectXEFTools
 			if (!EndOfStream)
 			{
                 int streamIndex = _reader.ReadInt32();
-                XEFStream eventStream = _streams[streamIndex];
 
                 // Check if reached end of events (denoted by special cookie index)
                 if (streamIndex == 0xFFFF)
@@ -254,6 +262,8 @@ namespace KinectXEFTools
                     EndOfStream = true;
                     return null;
                 }
+
+                XEFStream eventStream = _streams[streamIndex];
 
                 // Read event metadata
                 int dataSize = _reader.ReadInt32();

@@ -24,15 +24,15 @@ namespace KinectXEFTools
                 Console.WriteLine("Processing {0}", f.Name);
 
                 // Convert the file
-                using (XEFDataConverter xdc = new XEFDataConverter(f.FullName)
+                using (XEFDataConverter xdc = new XEFDataConverter()
                 {
-                    ConvertVideo = videoFlag,
-                    ConvertSkeleton = skeletonFlag,
-                    ConvertDepth = depthFlag,
+                    UseVideo = videoFlag,
+                    UseSkeleton = skeletonFlag,
+                    UseDepth = depthFlag,
                     ResumeConversion = resumeFlag
                 })
                 {
-                    xdc.
+                    xdc.ConvertFile(f.FullName);
                 }
 
                 Console.WriteLine("Done.");
@@ -47,7 +47,7 @@ namespace KinectXEFTools
 
         static void WriteUsage()
         {
-            Console.WriteLine("Usage:\tKinectXEFTools [-v] [-s] [-d] [-resume] path/file");
+            Console.WriteLine("Usage:\txefextract [-v] [-s] [-d] [-resume] path/file");
             Console.WriteLine("\t-v : Output video file");
             Console.WriteLine("\t-s : Output skeleton file");
             Console.WriteLine("\t-d : Output depth data");
@@ -124,7 +124,19 @@ namespace KinectXEFTools
                     return;
                 }
                 Console.WriteLine("Processing {0}", file.Name);
-                //TODO
+
+                // Convert the file
+                using (XEFDataConverter xdc = new XEFDataConverter()
+                {
+                    UseVideo = videoFlag,
+                    UseSkeleton = skeletonFlag,
+                    UseDepth = depthFlag,
+                    ResumeConversion = resumeFlag
+                })
+                {
+                    xdc.ConvertFile(file.FullName);
+                }
+
                 Console.WriteLine("\nDone.");
             }
             else

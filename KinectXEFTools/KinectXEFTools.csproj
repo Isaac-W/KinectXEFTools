@@ -7,7 +7,7 @@
     <ProjectGuid>{EA5ED6AD-FF91-4EC8-B0B8-FE94F3F75F34}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>KinectXEFTools</RootNamespace>
-    <AssemblyName>KinectXEFTools</AssemblyName>
+    <AssemblyName>xefextract</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
