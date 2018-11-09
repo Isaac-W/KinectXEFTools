@@ -18,6 +18,49 @@ Ex: 12 (0x0C000000)
 (Has strings representing Kinect metadata - version, serial, etc.)
 
 
+ARCHIVED STREAM DESCRIPTIONS (Length: 0x1EE - 494 bytes)
+----------------------------
+Original 0x4B4 offset has 0xFFFF instead!
+Then unknown null data for length 0xC018
+Streams start at 0xC4CC
+Data immediately follows each stream
+
+Stream Index - int (4 bytes)
+Unknown chunk of memory (24 bytes - 0x18)
+DataType - GUID (16 bytes)
+Null (4 bytes)
+Stream name (string 256 bytes - 0x100)
+Unknown (2 byte short) - 0x3333
+Tag size (2 byte short)
+Unknown (4 bytes) - 1024 (0x00040000)
+Null (4 bytes)
+Stream Key B? (4 bytes)
+Unknown chunk of memory (80 bytes - 0x50)   <----
+Unknown GUID (78 byte string - 0x4E)
+Semantic ID - GUID (16 bytes)
+
+
+ARCHIVED STREAM EVENTS
+----------------------
+
+Stream Key B? (4 bytes)  -- looks like 2 bytes Id, 2 bytes sub Id (0x05000100)
+
+Event data size (4 bytes) - F6 B6 02 00 (0x2b6f6 - 177910)
+
+Timestamp (8 bytes)
+
+Unknown (4 bytes)
+
+Original data size (4 bytes) - 00 A0 06 00 (0x6a000 - 434176)
+
+Tag (usually frame -- 4 bytes)
+
+Data*
+
+
+=========================================
+
+
 STREAM DESCRIPTIONS (Length: 0x1E6 - 486 bytes)
 -------------------------
 Starts at 0x4B4
@@ -49,7 +92,7 @@ Stream Index (int - 4 bytes)
 
 Unknown chunk of memory (46 bytes)
 
-Stream Index (int - 4 bytes)
+Stream Index? (int - 4 bytes)
 
 Unknown chunk of memory (22 bytes)
 
@@ -91,7 +134,7 @@ Ex: 00:00:00.0267193
 ...
 
 
-DEPTH
+DEPTH EXAMPLE
 -------------------------
 Stream Index - int (4 bytes)
 Ex: 03 00 00 00
@@ -123,6 +166,28 @@ Raw depth data (data size - 6a000)
 SENSOR TELEMETRY DATA
 -------------------------
 Header: Length 0x18 (24 bytes)
+
+
+AUDIO
+-------------------------
+uint Version (4 bytes)
+uint SubFrameCount (4 bytes)
+uint SubFramesAllocated (4 bytes)
+uint Reserved (4 bytes)
+
+* Array of Subframes
+uint SubFrameNumber (4 bytes)
+uint EventBitField (4 bytes)
+ulong TimeCounter (8 bytes)
+int BeamMode (4 bytes) -- enum (0-automatic, 1-manual)
+float BeamAngle (4 bytes)
+float BeamAngleConfidence (4 bytes)
+uint SpeakerTrackingIdCount (4 bytes)
+ulong[6] SpeakerTrackingIds (8*6 = 48 bytes)
+float[256] OutBuffer (4*256 = 1024 bytes)
+float[1024] MicBuffer (4*1024 = 4096 bytes)
+float[2048] SpkBuffer (4*2048 = 8192 bytes)
+byte[1024] ReservedByteArray (1*1024 = 1024 bytes)
 
 
 FOOTER
