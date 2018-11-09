@@ -1,29 +1,145 @@
+=========================================
 KINECT STUDIO XEF FORMAT
 =========================================
 
-An XEF file is a series of events that occur sequentially in the file.
-Values stored in little-endian byte order unless otherwise specified.
+An XEF file is a series of events that occur sequentially in the file. Values are stored in little-endian byte order unless otherwise specified.
+
+XEF files may be "archived" using the KSConvert tool for Kinect Studio. This performs a stream-level compression on the data, where event data is stored as zlib format (compression signature 0x7801). This also results in changes in the way streams and events are stored in the file.
 
 -----------------------------------------
 HEADER:
 
-char[8] (8) | "EVENTS1\0" - file signature
-uint    (4) | unknown (always 0x05000000?)
-uint    (4) | number of streams (+1)
-ulong   (8) | size of all data (?)
-
-* After the initial header, everything else is represented by events
+byte[8]      (8) | "EVENTS1\0" - file signature
+uint         (4) | unknown (always 0x05000000?)
+uint         (4) | number of streams (+1, count is inflated)
+ulong        (8) | size of all data (?)
 
 -----------------------------------------
-EVENT:
+FILE METADATA:
 
-uint    (4) | stream index
-uint    (4) | event data length
-ulong   (8) | timestamp (100-ns ticks)
-uint    (4) | unknown
-uint    (4) | event data length
-byte[]  (*) | tag data (variable-length)
-byte[]  (*) | event data (variable-length)
+* Skipping these for now as they don't matter for data extraction
+* For implementations, just seek to the address of the first stream
 
 
+-----------------------------------------
+STREAMS:
 
+Uncompressed streams:
+* Start address: 0x4B4
+* Record length: 486 (0x1E6) bytes
+* Event data start: 0x4B4 + 0x1E6 * num_of_streams
+
+Compressed streams:
+* First value at 0x4B4 is 0xFFFF0000 -- signaling that the file is archived
+* Start address: 0x4CC
+* Record length: 494 (0x1EE) bytes
+* Event data stored sequentially with each stream
+
+-----------------------------------------
+STREAM DESCRIPTIONS:
+
+* Note that the stream metadata appear to generally follow the event format, with the exception that the data length is incorrect and doesn't signify the actual length of the record
+
+uint         (4) | stream index
+uint         (4) | size of record (? ...not always true)
+ulong        (8) | null (probably timestamp)
+uint         (4) | unknown
+uint         (4) | size of record (?)
+
+uint         (4) | stream key (if 0x0000010000 is set, the stream is compressed)
+guid        (16) | stream data type id
+uint         (4) | null
+char[128]  (256) | stream name
+
+ushort       (2) | unknown (cookie value 0x3333)
+ushort       (2) | tag size
+uint         (4) | unknown (cookie value 0x00040000)
+uint         (4) | null
+uint         (4) | stream key
+
+byte[76*]  (76*) | unknown chunk of data <-- NOTE: length is 80 bytes for compressed streams
+
+char[78]    (78) | string representing unknown guid
+guid        (16) | stream semantic id
+
+
+-----------------------------------------
+EVENTS:
+
+* Immediately follows the stream descriptions for unarchived files
+* For archived files, events are stored with each stream and appear immediately after each individual stream description (this makes reading desired events a little trickier)
+* Tag data is usually 4 bytes and represents the internal frame number of the Kinect when recording
+* In compressed streams, the event data is stored as zlib format (0x7801 compression signature)
+* In C#, DeflateStream can be used to decompress the data back to its original form
+
+-----------------------------------------
+EVENT DATA:
+
+* Event header size: 24 bytes (0x18)
+
+uint         (4) | stream key
+uint         (4) | event data length 
+ulong        (8) | timestamp (100-ns ticks)
+uint         (4) | unknown
+uint         (4) | uncompressed event data length (should be the same as event data length for uncompressed streams)
+            
+byte[]       (*) | tag data (variable-length)
+byte[]       (*) | event data (variable-length)
+
+
+-----------------------------------------
+FOOTER:
+
+* A series of events with stream key (0x0000FFFF) -- use this to determine the end of stream data
+* Event data after this is unknown; may be metadata about each event?
+* Observed lots of repeated timestamps and data sizes
+
+
+=========================================
+EVENT DATA FORMATS
+
+* Each type of event has a specific format for its byte[] data
+* Tag data is typically 4 bytes representing the frame number, but is not always present (stream descriptions will have tag length)
+* Each data type is represented by a data type id (guid) which is found in the stream descriptions
+
+-----------------------------------------
+BODY
+
+* TODO
+
+-----------------------------------------
+COLOR
+
+* TODO
+
+-----------------------------------------
+AUDIO
+
+uint Version (4 bytes)
+uint SubFrameCount (4 bytes)
+uint SubFramesAllocated (4 bytes)
+uint Reserved (4 bytes)
+
+SubFrame[] ArrayOfSubFrames
+	uint SubFrameNumber (4 bytes)
+	uint EventBitField (4 bytes)
+	ulong TimeCounter (8 bytes)
+	int BeamMode (4 bytes) -- enum (0-automatic, 1-manual)
+	float BeamAngle (4 bytes)
+	float BeamAngleConfidence (4 bytes)
+	uint SpeakerTrackingIdCount (4 bytes)
+	ulong[6] SpeakerTrackingIds (8*6 = 48 bytes)
+	float[256] OutBuffer (4*256 = 1024 bytes)
+	float[1024] MicBuffer (4*1024 = 4096 bytes)
+	float[2048] SpkBuffer (4*2048 = 8192 bytes)
+	byte[1024] ReservedByteArray (1*1024 = 1024 bytes)
+
+-----------------------------------------
+DEPTH
+
+byte[434176] DepthFrame (1*434176 = 434176 bytes)
+
+-----------------------------------------
+IR
+
+* TODO
