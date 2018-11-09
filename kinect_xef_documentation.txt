@@ -7,23 +7,23 @@ Values stored in little-endian byte order unless otherwise specified.
 -----------------------------------------
 HEADER:
 
-char[8]	(8)	| "EVENTS1\0" - file signature
-uint	(4)	| unknown (always 0x05000000?)
-uint	(4)	| number of streams (+1)
-ulong	(8) | size of all data (?)
+char[8] (8) | "EVENTS1\0" - file signature
+uint    (4) | unknown (always 0x05000000?)
+uint    (4) | number of streams (+1)
+ulong   (8) | size of all data (?)
 
 * After the initial header, everything else is represented by events
 
 -----------------------------------------
 EVENT:
 
-uint	(4)	| stream index
-uint	(4)	| event data length
-ulong	(8)	| timestamp (100-ns ticks)
-uint	(4)	| unknown
-uint	(4) | event data length
-byte[]	(*)	| tag data (variable-length)
-byte[]	(*)	| event data (variable-length)
+uint    (4) | stream index
+uint    (4) | event data length
+ulong   (8) | timestamp (100-ns ticks)
+uint    (4) | unknown
+uint    (4) | event data length
+byte[]  (*) | tag data (variable-length)
+byte[]  (*) | event data (variable-length)
 
 
 
