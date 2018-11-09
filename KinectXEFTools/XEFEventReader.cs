@@ -3,143 +3,40 @@ using System.Text;
 using System.IO;
 using System.IO.Compression;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace KinectXEFTools
 {
-    public class Constants
-    {
-        public const uint STREAM_FRAME_LIMIT_MAXIMUM = 15;
-        public const uint AUDIO_FRAME_VERSION_MINOR_MASK = 65535;
-        public const uint AUDIO_FRAME_VERSION_MAJOR_MASK = 4294901760;
-        public const uint AUDIO_FRAME_VERSION = 65536;
-        public const uint AUDIO_RESERVED_BYTE_ARRAY_SIZE = 1024;
-        public const uint AUDIO_NUM_SPK = 8;
-        public const uint AUDIO_NUM_MIC = 4;
-        public const uint AUDIO_SAMPLES_PER_SUBFRAME = 256;
-        public const uint AUDIO_SAMPLERATE = 16000;
-        public const uint AUDIO_MAX_SUBFRAMES = 8;
-        public const uint MAX_AUDIO_FRAME_SIZE = 115344;
-        public const uint STREAM_BODY_INDEX_HEIGHT = 424;
-        public const uint STREAM_COLOR_HEIGHT = 1080;
-        public const uint STREAM_COLOR_WIDTH = 1920;
-        public const uint STREAM_IR_HEIGHT = 424;
-        public const uint STREAM_IR_WIDTH = 512;
-        public const uint STREAM_DEPTH_HEIGHT = 424;
-        public const uint STREAM_DEPTH_WIDTH = 512;
-        public const byte BODY_INDEX_BACKGROUND = 255;
-        public const uint BODY_INVALID_TRACKING_ID = 0;
-        public const uint BODY_COUNT = 6;
-        public const uint STREAM_BODY_INDEX_WIDTH = 512;
-    }
-
-    public static class StreamDataTypeIds
+	public class XEFEventReader : IDisposable, IEventReader
 	{
-		public static readonly Guid UncompressedColor = new Guid("{2ba0d67d-be11-4534-9444-3fb21ae0f08b}");
-        public static readonly Guid LongExposureIr    = new Guid("{7e06d98e-d271-4a1f-9bfd-6648a700db75}");
-        public static readonly Guid CompressedColor   = new Guid("{0a3914dc-3b16-11e1-aac3-001e4fd58c0f}");
-        public static readonly Guid RawIr             = new Guid("{0a3914e2-3b16-11e1-aac3-001e4fd58c0f}");
-        public static readonly Guid BodyIndex         = new Guid("{df82ffac-b533-4438-954a-686a1e20f4aa}");
-        public static readonly Guid Body              = new Guid("{a0c45179-5168-4875-a75c-f8f1760f637c}");
-        public static readonly Guid Depth             = new Guid("{0a3914d6-3b16-11e1-aac3-001e4fd58c0f}");
-        public static readonly Guid Ir                = new Guid("{0a3914d7-3b16-11e1-aac3-001e4fd58c0f}");
-        public static readonly Guid Audio             = new Guid("{787c7abd-9f6e-4a85-8d67-6365ff80cc69}");
-        public static readonly Guid Null              = new Guid("{00000000-0000-0000-0000-000000000000}");
-    }
-	
-	public class XEFStream
-	{
-
-		public XEFStream(int index, int tagSize, string dataTypeName, Guid dataTypeId, Guid semanticId)
-		{
-            EventCount = 0;
-            StreamIndex = index;
-            DataTypeName = dataTypeName;
-			TagSize = tagSize;
-			DataTypeId = dataTypeId;
-			SemanticId = semanticId;
-		}
-
-        public int EventCount { get; private set; }
-		
-		public int StreamIndex { get; private set; }
-
-        public string Name { get { return DataTypeName; } }
-
-		public int TagSize { get; private set; }
-
-        public string DataTypeName { get; private set; }
-		
-		public Guid DataTypeId { get; private set; }
-		
-		public Guid SemanticId { get; private set; }
-
-        public bool IsCompressed { get; private set; }
-
-        public void IncrementEventCount()
+        /// <summary>
+        /// Returns an event reader for the XEF file (may be compressed XEF).
+        /// </summary>
+        /// <param name="path">Path to the XEF file to open.</param>
+        /// <returns>An event reader (either XEFEventReader or XEFArchivedEventReader).</returns>
+        public static IEventReader GetEventReader(string path)
         {
-            EventCount++;
+            try
+            {
+                return new XEFEventReader(path);
+            }
+            catch (Exception ex)
+            {
+                return new XEFArchivedEventReader(path);
+            }
         }
 
-        public override string ToString()
-        {
-            return Name;
-        }
-    }
-	
-	public class XEFEvent
-	{
-		public XEFEvent(XEFStream eventStream, int frameIndex, TimeSpan relativeTime, byte[] tagData, byte[] eventData, uint unknown)
-		{
-            EventStream = eventStream;
-            FrameIndex = frameIndex;
-            RelativeTime = relativeTime;
-            TagData = tagData;
-            EventData = eventData;
-            Unknown = unknown;
-
-            EventIndex = EventStream.EventCount;
-            EventStream.IncrementEventCount(); // Need to tell stream that an event has been added
-        }
-		
-		public XEFStream EventStream { get; private set; }
-		
-        public int EventIndex { get; private set; }
-
-		public int FrameIndex { get; private set; }
-
-		public TimeSpan RelativeTime { get; private set; }
-
-        public int TagDataSize { get { return EventStream.TagSize; } }
-
-        public int EventDataSize { get { return EventData.Length; } }
-
-        public Guid EventStreamSemanticId { get { return EventStream.SemanticId; } }
-
-		public Guid EventStreamDataTypeId { get { return EventStream.DataTypeId; } }
-
-        public byte[] TagData { get; private set; }
-
-        public byte[] EventData { get; private set; }
-
-        public byte[] RawEventData { get; private set; }
-
-        public bool IsCompressed { get; private set; }
-
-        public uint Unknown { get; private set; } // TODO Unknown data found in event (could be some index or id)
-	}
-	
-	public class XEFEventReader : IDisposable
-	{
 		//
 		//	Data offsets
 		//
 		
+        private const int STREAM_KEY_COMPRESSION_FLAG = 0x00000100;
+
 		private const int STREAM_COUNT_ADDRESS = 0xC;
 		private const int STREAM_COUNT_SIZE = 4; // int
                       
 		private const int STREAM_DESC_START_ADDRESS = 0x4B4;
 		private const int STREAM_DESC_SIZE = 486;
-        private const int STREAM_ARC_DESC_SIZE = 494; // archived stream description
                       
 		private const int STREAM_INDEX_SIZE = 4; // int
         private const int STREAM_UNK1_SIZE = 4;
@@ -152,14 +49,13 @@ namespace KinectXEFTools
 		private const int STREAM_UNK4_SIZE = 2;
 		private const int STREAM_TAG_SIZE = 2; // ushort
 		private const int STREAM_UNK5_SIZE = 162;
-        private const int STREAM_ARC_UNK5_SIZE = 170; // larger for archived stream
 		private const int STREAM_SEMID_SIZE = 16; // guid
                       
 		private const int EVENT_HEADER_SIZE = 24;
         private const int EVENT_DATALEN_SIZE = 4; // int
         private const int EVENT_TIME_SIZE = 8; // long (TimeSpan.Ticks)
         private const int EVENT_UNK_SIZE = 4;
-		
+
 		//
 		//	Members
 		//
@@ -177,8 +73,6 @@ namespace KinectXEFTools
         public bool EndOfStream { get; private set; }
 
         public int StreamCount { get { return _streams.Count; } }
-
-        public bool IsCompressed { get; private set; }
 
         //
         //	Constructor
@@ -246,7 +140,8 @@ namespace KinectXEFTools
                 if (streamIndex == 0xFFFF)
                 {
                     // This XEF is archived!
-                    IsCompressed = true;
+                    EndOfStream = true;
+                    throw new Exception("Cannot open archived XEF! Use XEFArchivedEventReader instead.");
                 }
 
                 // Read stream description (TODO make class/struct once we have more info)
