@@ -1,8 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using KinectXEFTools;
 
-namespace KinectXEFTools
+namespace XEFExtract
 {
     class Program
     {
@@ -97,9 +98,10 @@ namespace KinectXEFTools
             // Check if no output set
             if (!(videoFlag || skeletonFlag || depthFlag))
             {
-                // By default, set video and skeleton
+                // By default, set everything to true
                 videoFlag = true;
                 skeletonFlag = true;
+                depthFlag = true;
             }
 
             var path = args[args.Length - 1];

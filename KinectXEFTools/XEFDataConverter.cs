@@ -4,7 +4,7 @@ using System.IO;
 
 namespace KinectXEFTools
 {
-    class XEFDataConverter : IDisposable
+    public class XEFDataConverter : IDisposable
     {
         //
         //  Properties

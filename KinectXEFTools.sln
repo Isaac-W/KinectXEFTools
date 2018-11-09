@@ -3,23 +3,49 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2050
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KinectXEFTools", "KinectXEFTools\KinectXEFTools.csproj", "{EA5ED6AD-FF91-4EC8-B0B8-FE94F3F75F34}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XEFExtract", "XEFExtract\XEFExtract.csproj", "{D467AE86-46C3-4395-AD18-23AE3059D6FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KinectXEFTools", "KinectXEFTools\KinectXEFTools.csproj", "{C6012D25-13E6-48BD-BC38-F8818262AE04}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{EA5ED6AD-FF91-4EC8-B0B8-FE94F3F75F34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EA5ED6AD-FF91-4EC8-B0B8-FE94F3F75F34}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EA5ED6AD-FF91-4EC8-B0B8-FE94F3F75F34}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EA5ED6AD-FF91-4EC8-B0B8-FE94F3F75F34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D467AE86-46C3-4395-AD18-23AE3059D6FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D467AE86-46C3-4395-AD18-23AE3059D6FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D467AE86-46C3-4395-AD18-23AE3059D6FD}.Debug|x64.ActiveCfg = Debug|x64
+		{D467AE86-46C3-4395-AD18-23AE3059D6FD}.Debug|x64.Build.0 = Debug|x64
+		{D467AE86-46C3-4395-AD18-23AE3059D6FD}.Debug|x86.ActiveCfg = Debug|x86
+		{D467AE86-46C3-4395-AD18-23AE3059D6FD}.Debug|x86.Build.0 = Debug|x86
+		{D467AE86-46C3-4395-AD18-23AE3059D6FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D467AE86-46C3-4395-AD18-23AE3059D6FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D467AE86-46C3-4395-AD18-23AE3059D6FD}.Release|x64.ActiveCfg = Release|x64
+		{D467AE86-46C3-4395-AD18-23AE3059D6FD}.Release|x64.Build.0 = Release|x64
+		{D467AE86-46C3-4395-AD18-23AE3059D6FD}.Release|x86.ActiveCfg = Release|x86
+		{D467AE86-46C3-4395-AD18-23AE3059D6FD}.Release|x86.Build.0 = Release|x86
+		{C6012D25-13E6-48BD-BC38-F8818262AE04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6012D25-13E6-48BD-BC38-F8818262AE04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6012D25-13E6-48BD-BC38-F8818262AE04}.Debug|x64.ActiveCfg = Debug|x64
+		{C6012D25-13E6-48BD-BC38-F8818262AE04}.Debug|x64.Build.0 = Debug|x64
+		{C6012D25-13E6-48BD-BC38-F8818262AE04}.Debug|x86.ActiveCfg = Debug|x86
+		{C6012D25-13E6-48BD-BC38-F8818262AE04}.Debug|x86.Build.0 = Debug|x86
+		{C6012D25-13E6-48BD-BC38-F8818262AE04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6012D25-13E6-48BD-BC38-F8818262AE04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6012D25-13E6-48BD-BC38-F8818262AE04}.Release|x64.ActiveCfg = Release|x64
+		{C6012D25-13E6-48BD-BC38-F8818262AE04}.Release|x64.Build.0 = Release|x64
+		{C6012D25-13E6-48BD-BC38-F8818262AE04}.Release|x86.ActiveCfg = Release|x86
+		{C6012D25-13E6-48BD-BC38-F8818262AE04}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {FA7AA23F-139D-49B2-BE28-EC73A2AF44A2}
+		SolutionGuid = {ADEF5F71-DDE0-45C2-983A-706F2FDF6F88}
 	EndGlobalSection
 EndGlobal
