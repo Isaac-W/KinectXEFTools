@@ -4,8 +4,7 @@ namespace KinectXEFTools
 {
     public class XEFStream
     {
-
-        public XEFStream(int index, int tagSize, string dataTypeName, Guid dataTypeId, Guid semanticId)
+        public XEFStream(int index, int tagSize, string dataTypeName, Guid dataTypeId, Guid semanticId, bool compressed)
         {
             EventCount = 0;
             StreamIndex = index;
@@ -13,6 +12,12 @@ namespace KinectXEFTools
             TagSize = tagSize;
             DataTypeId = dataTypeId;
             SemanticId = semanticId;
+            IsCompressed = compressed;
+        }
+
+        public XEFStream(int index, int tagSize, string dataTypeName, Guid dataTypeId, Guid semanticId) :
+            this(index, tagSize, dataTypeName, dataTypeId, semanticId, false)
+        {
         }
 
         public int EventCount { get; private set; }

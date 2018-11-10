@@ -2,7 +2,7 @@
   "profiles": {
     "XEFExtract": {
       "commandName": "Project",
-      "commandLineArgs": "D:\\Working\\Personal\\XEF_Data"
+      "commandLineArgs": "\"C:\\Users\\IsaacW\\Documents\\Kinect Studio\\test\""
     }
   }
 }

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace KinectXEFTools
 {
-    public interface IEventReader
+    public interface IEventReader : IDisposable
     {
         XEFEvent GetNextEvent();
         XEFEvent GetNextEvent(Guid streamDataType);

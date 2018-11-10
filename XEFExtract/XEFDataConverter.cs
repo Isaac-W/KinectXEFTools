@@ -61,7 +61,7 @@ namespace XEFExtract
 
         public void ConvertFile(string path)
         {
-            using (XEFEventReader reader = new XEFEventReader(path))
+            using (IEventReader reader = XEFEventReader.GetEventReader(path))
             {
                 //
                 //  Set up filenames
