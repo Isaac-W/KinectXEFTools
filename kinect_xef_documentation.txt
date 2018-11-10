@@ -30,8 +30,8 @@ Uncompressed streams:
 * Event data start: 0x4B4 + 0x1E6 * num_of_streams
 
 Compressed streams:
-* First value at 0x4B4 is 0xFFFF0000 -- signaling that the file is archived
-* Start address: 0x4CC
+* First value at 0x4B4 is 0x0000FFFF -- signaling that the file is archived
+* Start address: 0xC4CC
 * Record length: 494 (0x1EE) bytes
 * Event data stored sequentially with each stream
 
@@ -41,23 +41,24 @@ STREAM DESCRIPTIONS:
 * Note that the stream metadata appear to generally follow the event format, with the exception that the data length is incorrect and doesn't signify the actual length of the record
 
 uint         (4) | stream index
+
 uint         (4) | size of record (? ...not always true)
 ulong        (8) | null (probably timestamp)
 uint         (4) | unknown
 uint         (4) | size of record (?)
 
-uint         (4) | stream key (if 0x0000010000 is set, the stream is compressed)
+uint         (4) | stream key (if 0x00010000 is set, the stream is compressed)
 guid        (16) | stream data type id
 uint         (4) | null
 char[128]  (256) | stream name
 
 ushort       (2) | unknown (cookie value 0x3333)
 ushort       (2) | tag size
-uint         (4) | unknown (cookie value 0x00040000)
+uint         (4) | unknown (cookie value 0x00000004)
 uint         (4) | null
 uint         (4) | stream key
 
-byte[76*]  (76*) | unknown chunk of data <-- NOTE: length is 80 bytes for compressed streams
+byte[72*]  (72*) | unknown chunk of data <-- NOTE: length is 80 bytes for compressed streams
 
 char[78]    (78) | string representing unknown guid
 guid        (16) | stream semantic id
@@ -78,6 +79,7 @@ EVENT DATA:
 * Event header size: 24 bytes (0x18)
 
 uint         (4) | stream key
+
 uint         (4) | event data length 
 ulong        (8) | timestamp (100-ns ticks)
 uint         (4) | unknown
@@ -110,10 +112,14 @@ BODY
 -----------------------------------------
 COLOR
 
-* TODO
+* 1920 x 1080 @ 16 bpp (YUYV image format)
+
+byte[4147200] ColorFrame (1*4147200 = 4147200 bytes)
 
 -----------------------------------------
 AUDIO
+
+* 16000 Hz 24-bit PCM format 
 
 uint Version (4 bytes)
 uint SubFrameCount (4 bytes)
@@ -137,9 +143,13 @@ SubFrame[] ArrayOfSubFrames
 -----------------------------------------
 DEPTH
 
+* 512 x 424 @ 16 bpp (representing distance in mm from Kinect sensor)
+
 byte[434176] DepthFrame (1*434176 = 434176 bytes)
 
 -----------------------------------------
 IR
 
-* TODO
+* 512 x 424 @ 16 bpp (grayscale image)
+
+byte[434176] IRFrame (1*434176 = 434176 bytes)
