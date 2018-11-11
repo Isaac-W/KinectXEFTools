@@ -108,6 +108,11 @@ namespace KinectXEFTools
             // Seek reader to start of events
             _reader.BaseStream.Position = DataConstants.ARC_STREAM_FIRST_EVENT_ADDRESS;
         }
+        
+        private bool IsValidStreamIndex(short index)
+        {
+            return _streams.ContainsKey(index) || index == DataConstants.EVENT_UNKRECORD_INDEX || index == _totalReportedStreams + 1;
+        }
 
         public void Close()
         {
@@ -128,7 +133,59 @@ namespace KinectXEFTools
                 // Check if reached unknown event or footer
                 if (streamIndex == DataConstants.EVENT_UNKRECORD_INDEX)
                 {
-                    // TODO
+                    // Unknown event; skip it!
+                    Debug.Assert(streamFlags == 0);
+
+                    int unkId = _reader.ReadInt32(); // Unknown id
+                    _reader.ReadInt64(); // Timestamp
+                    _reader.ReadInt32(); // Null
+                    _reader.ReadInt32(); // Null
+
+                    /* Doesn't work! The IDs are different for each file (but correlate within files)
+                    if (unkId == DataConstants.EVENT_UNKID_LONG)
+                    {
+                        _reader.ReadBytes(DataConstants.EVENT_UNKRECORD_LONG_SIZE);
+                    }
+                    else if (unkId == DataConstants.EVENT_UNKID_SHORT)
+                    {
+                        _reader.ReadBytes(DataConstants.EVENT_UNKRECORD_SHORT_SIZE);
+                    }
+                    else
+                    {
+                        _reader.ReadBytes(DataConstants.EVENT_UNKRECORD_SIZE);
+                    }
+                    */
+
+                    // Right now, we'll just heuristically skip through by 0x1000 at a time until we find a valid stream id
+                    // TODO Figure out better way to identify how long an unknown record is
+                    _reader.ReadBytes(0x6000);
+                    short peekIndex = _reader.ReadInt16();
+                    _reader.BaseStream.Position -= 2;
+
+                    if (!IsValidStreamIndex(peekIndex))
+                    {
+                        // Try next position
+                        _reader.ReadBytes(0x1000);
+                        peekIndex = _reader.ReadInt16();
+                        _reader.BaseStream.Position -= 2;
+
+                        if (!IsValidStreamIndex(peekIndex))
+                        {
+                            // Treat as long record (0xC000 total length)
+                            _reader.ReadBytes(0x5000);
+
+                            peekIndex = _reader.ReadInt16();
+                            _reader.BaseStream.Position -= 2;
+                            Debug.Assert(IsValidStreamIndex(peekIndex));
+                        }
+                    }
+
+                    // Return next event
+                    return GetNextEvent();
+                }
+                else if (streamIndex == _totalReportedStreams + 1)
+                {
+                    // Reached footer
                     EndOfStream = true;
                     return null;
                 }
@@ -174,9 +231,8 @@ namespace KinectXEFTools
                     // Create new stream and add to stream list
                     _streams[streamIndex] = new XEFStream(streamIndex, streamFlags, tagSize, dataTypeName, dataTypeId, semanticId);
 
-                    // Get next event stream index ready
-                    streamIndex = _reader.ReadInt16();
-                    streamFlags = _reader.ReadInt16();
+                    // Return next event
+                    return GetNextEvent();
                 }
 
                 // Get event stream

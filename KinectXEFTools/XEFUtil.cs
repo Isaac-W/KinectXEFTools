@@ -68,7 +68,11 @@ namespace KinectXEFTools
         public const int EVENT_HEADER_SIZE = 24;
 
         public const short EVENT_UNKRECORD_INDEX = -1;
+        public const int EVENT_UNKRECORD_SHORT_SIZE = 0x6000;
         public const int EVENT_UNKRECORD_SIZE = 0x7000;
+        public const int EVENT_UNKRECORD_LONG_SIZE = 0xC000;
+        public const int EVENT_UNKID_SHORT = 0x9;
+        public const int EVENT_UNKID_LONG = 0x14;
 
         public const int FOOTER_INDEX_SIZE = 2; // ushort
         public const int FOOTER_SIZE = 0x6B0;

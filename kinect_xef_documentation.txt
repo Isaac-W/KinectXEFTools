@@ -97,11 +97,13 @@ UNKNOWN EVENT:
 
 * Header follows typical event format, but the rest of the data format is unknown
 * Possibly some sort of cache for frame indexing, a number of data sizes and indices can be seen
+* These events are variable length (determined by unknown id)
+* Often, a number of these events occur sequentially in the file
 
 ushort       (2) | stream index (equal to 0xFFFF)
 ushort       (2) | stream flags (equal to 0x0000)
 
-uint         (4) | unknown
+uint         (4) | unknown id
 ulong        (8) | timestamp (100-ns ticks)
 uint         (4) | null
 uint         (4) | null
