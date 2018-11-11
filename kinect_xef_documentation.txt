@@ -40,14 +40,16 @@ STREAM DESCRIPTIONS:
 
 * Note that the stream metadata appear to generally follow the event format, with the exception that the data length is incorrect and doesn't signify the actual length of the record
 
-uint         (4) | stream index
+ushort       (2) | stream index
+ushort       (2) | stream flags (should be 0)
 
 uint         (4) | size of record (? ...not always true)
 ulong        (8) | null (probably timestamp)
 uint         (4) | unknown
 uint         (4) | size of record (?)
 
-uint         (4) | stream key (if 0x00010000 is set, the stream is compressed)
+ushort       (2) | stream index
+ushort       (2) | stream flags (if set to 1, the stream is compressed)
 guid        (16) | stream data type id
 uint         (4) | null
 char[128]  (256) | stream name
@@ -56,7 +58,8 @@ ushort       (2) | unknown (cookie value 0x3333)
 ushort       (2) | tag size
 uint         (4) | unknown (cookie value 0x00000004)
 uint         (4) | null
-uint         (4) | stream key
+ushort       (2) | stream index
+ushort       (2) | stream flags
 
 byte[72*]  (72*) | unknown chunk of data <-- NOTE: length is 80 bytes for compressed streams
 
@@ -78,23 +81,41 @@ EVENT DATA:
 
 * Event header size: 24 bytes (0x18)
 
-uint         (4) | stream key
+ushort       (2) | stream index
+ushort       (2) | stream flags (if set to 1, the stream is compressed)
 
 uint         (4) | event data length 
 ulong        (8) | timestamp (100-ns ticks)
 uint         (4) | unknown
 uint         (4) | uncompressed event data length (should be the same as event data length for uncompressed streams)
             
-byte[]       (*) | tag data (variable-length)
+byte[]       (*) | tag data   (variable-length)
 byte[]       (*) | event data (variable-length)
 
+-----------------------------------------
+UNKNOWN EVENT:
+
+* Header follows typical event format, but the rest of the data format is unknown
+* Possibly some sort of cache for frame indexing, a number of data sizes and indices can be seen
+
+ushort       (2) | stream index (equal to 0xFFFF)
+ushort       (2) | stream flags (equal to 0x0000)
+
+uint         (4) | unknown
+ulong        (8) | timestamp (100-ns ticks)
+uint         (4) | null
+uint         (4) | null
+
+byte[28672]      | unknown data of length 0x7000
 
 -----------------------------------------
 FOOTER:
 
-* A series of events with stream key (0x0000FFFF) -- use this to determine the end of stream data
-* Event data after this is unknown; may be metadata about each event?
-* Observed lots of repeated timestamps and data sizes
+* NOTE: Doesn't follow typical event format
+* Marks the end of file, if encountering a stream index equal to the value read from the header (STREAM_COUNT + 1)
+
+ushort       (2) | stream index - this will be equal STREAM_COUNT + 1
+byte[1712]       | unknown data of length 0x6B0 (lots of 0xFFFFFFFF values observed)
 
 
 =========================================
@@ -121,23 +142,23 @@ AUDIO
 
 * 16000 Hz 24-bit PCM format 
 
-uint Version (4 bytes)
-uint SubFrameCount (4 bytes)
-uint SubFramesAllocated (4 bytes)
-uint Reserved (4 bytes)
-
-SubFrame[] ArrayOfSubFrames
-	uint SubFrameNumber (4 bytes)
-	uint EventBitField (4 bytes)
-	ulong TimeCounter (8 bytes)
-	int BeamMode (4 bytes) -- enum (0-automatic, 1-manual)
-	float BeamAngle (4 bytes)
-	float BeamAngleConfidence (4 bytes)
-	uint SpeakerTrackingIdCount (4 bytes)
-	ulong[6] SpeakerTrackingIds (8*6 = 48 bytes)
-	float[256] OutBuffer (4*256 = 1024 bytes)
-	float[1024] MicBuffer (4*1024 = 4096 bytes)
-	float[2048] SpkBuffer (4*2048 = 8192 bytes)
+uint Version                                 (4 bytes)
+uint SubFrameCount                           (4 bytes)
+uint SubFramesAllocated                      (4 bytes)
+uint Reserved                                (4 bytes)
+                                             
+SubFrame[] ArrayOfSubFrames                  
+	uint SubFrameNumber                      (4 bytes)
+	uint EventBitField                       (4 bytes)
+	ulong TimeCounter                        (8 bytes)
+	int BeamMode (0-automatic, 1-manual)     (4 bytes)
+	float BeamAngle                          (4 bytes)
+	float BeamAngleConfidence                (4 bytes)
+	uint SpeakerTrackingIdCount              (4 bytes)
+	ulong[6] SpeakerTrackingIds       (8*6 = 48 bytes)
+	float[256] OutBuffer          (4*256 = 1024 bytes)
+	float[1024] MicBuffer        (4*1024 = 4096 bytes)
+	float[2048] SpkBuffer        (4*2048 = 8192 bytes)
 	byte[1024] ReservedByteArray (1*1024 = 1024 bytes)
 
 -----------------------------------------

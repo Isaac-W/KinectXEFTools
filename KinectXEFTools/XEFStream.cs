@@ -4,25 +4,22 @@ namespace KinectXEFTools
 {
     public class XEFStream
     {
-        public XEFStream(int index, int tagSize, string dataTypeName, Guid dataTypeId, Guid semanticId, bool compressed)
+        public XEFStream(short index, short flags, int tagSize, string dataTypeName, Guid dataTypeId, Guid semanticId)
         {
             EventCount = 0;
             StreamIndex = index;
+            StreamFlags = flags;
             DataTypeName = dataTypeName;
             TagSize = tagSize;
             DataTypeId = dataTypeId;
             SemanticId = semanticId;
-            IsCompressed = compressed;
-        }
-
-        public XEFStream(int index, int tagSize, string dataTypeName, Guid dataTypeId, Guid semanticId) :
-            this(index, tagSize, dataTypeName, dataTypeId, semanticId, false)
-        {
         }
 
         public int EventCount { get; private set; }
 
-        public int StreamIndex { get; private set; }
+        public short StreamIndex { get; private set; }
+
+        public short StreamFlags { get; private set; }
 
         public string Name { get { return DataTypeName; } }
 
@@ -34,7 +31,7 @@ namespace KinectXEFTools
 
         public Guid SemanticId { get; private set; }
 
-        public bool IsCompressed { get; private set; }
+        public bool IsCompressed { get { return (StreamFlags & DataConstants.FLAG_COMPRESSED) == DataConstants.FLAG_COMPRESSED; } }
 
         public void IncrementEventCount()
         {

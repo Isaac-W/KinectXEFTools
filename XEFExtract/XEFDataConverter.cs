@@ -122,7 +122,7 @@ namespace XEFExtract
                 //
 
                 long depthframecount = 0;
-                uint depthframesize = Constants.STREAM_DEPTH_WIDTH * Constants.STREAM_DEPTH_HEIGHT * 2; // 16bpp
+                uint depthframesize = NuiConstants.STREAM_DEPTH_WIDTH * NuiConstants.STREAM_DEPTH_HEIGHT * 2; // 16bpp
                 long depthStartTime = -1;
                 BinaryWriter depthWriter = null;
 
@@ -132,8 +132,8 @@ namespace XEFExtract
 
                     // Write initial headers
                     depthWriter.Write(depthframecount); // 8 bytes -- RESERVED (this is updated after enumerating through all the frames)
-                    depthWriter.Write(Constants.STREAM_DEPTH_WIDTH); // 4 bytes
-                    depthWriter.Write(Constants.STREAM_DEPTH_HEIGHT); // 4 bytes
+                    depthWriter.Write(NuiConstants.STREAM_DEPTH_WIDTH); // 4 bytes
+                    depthWriter.Write(NuiConstants.STREAM_DEPTH_HEIGHT); // 4 bytes
                     depthWriter.Write(depthframesize); // 4 bytes
                 }
 

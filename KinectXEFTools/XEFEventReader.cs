@@ -20,41 +20,21 @@ namespace KinectXEFTools
             {
                 return new XEFEventReader(path);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new XEFArchivedEventReader(path);
             }
         }
 
         //
-        //	Data offsets
-        //
-
-        private const int STREAM_KEY_INDEX_MASK = 0x0000FFFF;
-
-        private const int STREAM_COUNT_ADDRESS = 0xC;
-		private const int STREAM_COUNT_SIZE = 4; // int
-                      
-		private const int STREAM_DESC_START_ADDRESS = 0x4B4;
-		private const int STREAM_DESC_SIZE = 486;
-        
-		private const int STREAM_TYPID_SIZE = 16; // guid
-		private const int STREAM_NAME_SIZE = 256; // wstr
-        private const int STREAM_UNK_SIZE = 72;
-        private const int STREAM_UNK_GUID_SIZE = 78;
-		private const int STREAM_SEMID_SIZE = 16; // guid
-                      
-		private const int EVENT_HEADER_SIZE = 24;
-
-        private const int EVENT_END_INDEX = 0x0000FFFF;
-
-        //
         //	Members
         //
 
-        private Dictionary<int, XEFStream> _streams;
+        private Dictionary<short, XEFStream> _streams;
 		
 		private BinaryReader _reader;
+
+        private int _totalReportedStreams;
 
         //
         //	Properties
@@ -116,20 +96,27 @@ namespace KinectXEFTools
 		
 		private void InitializeStreams()
 		{
-            _streams = new Dictionary<int, XEFStream>();
+            _streams = new Dictionary<short, XEFStream>();
+
+            // TODO It may be better to create streams as they appear (like with archived data)
 
 			// Get total number of streams from header
-			_reader.BaseStream.Position = STREAM_COUNT_ADDRESS;
-            int streamCount = _reader.ReadInt32();
-            streamCount--; // For some reason, XEF inflates the count by 1
+			_reader.BaseStream.Position = DataConstants.STREAM_COUNT_ADDRESS;
+            _totalReportedStreams = _reader.ReadInt32();
+            if (_totalReportedStreams == 0)
+            {
+                throw new Exception("Error reading XEF! The file may be corrupt.");
+            }
+            _totalReportedStreams--; // For some reason, XEF inflates the count by 1
 
             // Read in stream descriptions and populate stream list
-            _reader.BaseStream.Position = STREAM_DESC_START_ADDRESS;
-            for (int i = 0; i < streamCount; i++)
+            _reader.BaseStream.Position = DataConstants.STREAM_DESC_START_ADDRESS;
+            for (int i = 0; i < _totalReportedStreams; i++)
             {
-                int streamIndex = _reader.ReadInt32();
+                short streamIndex = _reader.ReadInt16();
+                short streamFlags = _reader.ReadInt16();
 
-                if (streamIndex == EVENT_END_INDEX)
+                if (streamIndex == DataConstants.ARC_STREAM_DESC_INDEX_KEY)
                 {
                     // This XEF is archived!
                     EndOfStream = true;
@@ -145,11 +132,11 @@ namespace KinectXEFTools
                 _reader.ReadInt32(); // Size of record?
 
                 int streamKey = _reader.ReadInt32();
-                Guid dataTypeId = new Guid(_reader.ReadBytes(STREAM_TYPID_SIZE));
+                Guid dataTypeId = new Guid(_reader.ReadBytes(DataConstants.STREAM_TYPID_SIZE));
 
                 _reader.ReadInt32(); // Null
 
-                string dataTypeName = Encoding.Unicode.GetString(_reader.ReadBytes(STREAM_NAME_SIZE)).TrimEnd('\0');
+                string dataTypeName = Encoding.Unicode.GetString(_reader.ReadBytes(DataConstants.STREAM_NAME_SIZE)).TrimEnd('\0');
 
                 _reader.ReadInt16(); // Unknown cookie 0x3333
 
@@ -159,22 +146,21 @@ namespace KinectXEFTools
                 _reader.ReadInt32(); // Null
                 _reader.ReadInt32(); // Stream key
 
-                _reader.ReadBytes(STREAM_UNK_SIZE);
-                _reader.ReadBytes(STREAM_UNK_GUID_SIZE); // Unknown GUID string
+                _reader.ReadBytes(DataConstants.STREAM_UNK_SIZE);
+                _reader.ReadBytes(DataConstants.STREAM_UNK_GUID_SIZE); // Unknown GUID string
 
-                Guid semanticId = new Guid(_reader.ReadBytes(STREAM_SEMID_SIZE));
+                Guid semanticId = new Guid(_reader.ReadBytes(DataConstants.STREAM_SEMID_SIZE));
 
                 // Create new stream and add to stream list
                 //Debug.Assert(streamKey == streamIndex);
-                streamKey &= STREAM_KEY_INDEX_MASK;
-                _streams[streamKey] = new XEFStream(streamIndex, tagSize, dataTypeName, dataTypeId, semanticId);
+                _streams[streamIndex] = new XEFStream(streamIndex, streamFlags, tagSize, dataTypeName, dataTypeId, semanticId);
             }
 		}
 		
 		private void SeekToEvents()
 		{
             // Seek the reader to the start of the actual XEF events
-            _reader.BaseStream.Position = STREAM_DESC_START_ADDRESS + STREAM_DESC_SIZE * StreamCount;
+            _reader.BaseStream.Position = DataConstants.STREAM_DESC_START_ADDRESS + DataConstants.STREAM_DESC_SIZE * StreamCount;
 		}
 		
 		public void Close()
@@ -190,16 +176,17 @@ namespace KinectXEFTools
 		{
 			if (!EndOfStream)
 			{
-                int streamIndex = _reader.ReadInt32();
+                short streamIndex = _reader.ReadInt16();
+                short streamFlags = _reader.ReadInt16();
 
-                // Check if reached end of events (denoted by special cookie index)
-                if (streamIndex == EVENT_END_INDEX)
+                // Check if reached unknown event or footer
+                if (streamIndex == DataConstants.EVENT_UNKRECORD_INDEX)
                 {
+                    // TODO
                     EndOfStream = true;
                     return null;
                 }
-
-                streamIndex &= STREAM_KEY_INDEX_MASK;
+                
                 Debug.Assert(_streams.ContainsKey(streamIndex));
                 XEFStream eventStream = _streams[streamIndex];
 
