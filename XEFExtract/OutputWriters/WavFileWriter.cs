@@ -105,8 +105,9 @@ namespace XEFExtract
             {
                 if (disposing)
                 {
-                    // Dispose managed resources
                     UpdateHeader();
+
+                    // Dispose managed resources
                     _writer.Dispose();
                 }
 
@@ -192,7 +193,7 @@ namespace XEFExtract
         /// <summary>
         /// Writes multiple samples to the wav file.
         /// </summary>
-        /// <param name="samples">Floating-point sample between -1.0 and +1.0</param>
+        /// <param name="samples">Floating-point samples between -1.0 and +1.0</param>
         public void WriteSamples(float[] samples)
         {
             foreach (float sample in samples)

@@ -13,5 +13,7 @@ namespace KinectXEFTools
         IEnumerable<XEFEvent> GetAllEvents();
         IEnumerable<XEFEvent> GetAllEvents(Guid streamDataType);
         IEnumerable<XEFEvent> GetAllEvents(ICollection<Guid> streamDataTypes);
+
+        void Close();
     }
 }
