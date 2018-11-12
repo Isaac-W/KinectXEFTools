@@ -15,6 +15,7 @@ namespace XEFExtract
         private float _maxAudioVal = float.MinValue;
         private List<float[]> _audioBuffers = new List<float[]>();
         private WavFileWriter _writer;
+        private bool _seenEvent = false;
 
         //
         //  Properties
@@ -111,14 +112,15 @@ namespace XEFExtract
             }
 
             // Update start/end time
-            if (StartTime == TimeSpan.Zero)
+            if (!_seenEvent)
             {
                 StartTime = ev.RelativeTime;
+                _seenEvent = true;
             }
             EndTime = ev.RelativeTime;
 
             // Get raw audio data
-            XEFAudioData audioData = XEFAudioData.FromByteArray(ev.EventData);
+            XEFAudioFrame audioData = XEFAudioFrame.FromByteArray(ev.EventData);
 
             for (int i = 0; i < audioData.SubFrames.Length; i++)
             {

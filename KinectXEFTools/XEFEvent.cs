@@ -76,7 +76,7 @@ namespace KinectXEFTools
 
         public override string ToString()
         {
-            return Unknown.ToString();
+            return EventDataSize.ToString();
         }
     }
 }

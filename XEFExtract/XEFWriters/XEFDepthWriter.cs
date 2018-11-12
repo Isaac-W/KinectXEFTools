@@ -15,6 +15,7 @@ namespace XEFExtract
         private uint _depthframesize = NuiConstants.STREAM_DEPTH_WIDTH * NuiConstants.STREAM_DEPTH_HEIGHT * 2; // 16bpp
         private long _depthStartTime = -1;
         private BinaryWriter _writer = null;
+        private bool _seenEvent = false;
 
         //
         //  Properties
@@ -113,9 +114,10 @@ namespace XEFExtract
             }
 
             // Update start/end time
-            if (StartTime == TimeSpan.Zero)
+            if (!_seenEvent)
             {
                 StartTime = ev.RelativeTime;
+                _seenEvent = true;
             }
             EndTime = ev.RelativeTime;
 

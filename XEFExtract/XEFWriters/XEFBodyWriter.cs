@@ -1,6 +1,7 @@
 ﻿using KinectXEFTools;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace XEFExtract
@@ -10,6 +11,10 @@ namespace XEFExtract
         //
         //  Members
         //
+
+        private StreamWriter _writer;
+
+        private bool _seenEvent = false;
 
         //
         //  Properties
@@ -35,6 +40,10 @@ namespace XEFExtract
             EventCount = 0;
             StartTime = TimeSpan.Zero;
             EndTime = TimeSpan.Zero;
+
+            _writer = new StreamWriter(path);
+
+            WriteHeaders();
         }
 
         ~XEFBodyWriter()
@@ -61,7 +70,7 @@ namespace XEFExtract
                 if (disposing)
                 {
                     // Dispose managed resources
-                    //_writer.Dispose();
+                    _writer.Dispose();
                 }
 
                 disposed = true;
@@ -72,6 +81,11 @@ namespace XEFExtract
         //  Methods
         //
 
+        private void WriteHeaders()
+        {
+            _writer.WriteLine("EventIndex,Time,SkeletonId,HandLeftConfidence,HandLeftState,HandRightConfidence,HandRightState,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ,Joint,Status,PositionX,PositionY,PositionZ,RotationW,RotationX,RotationY,RotationZ");
+        }
+
         public void Close()
         {
             Dispose(true);
@@ -79,12 +93,66 @@ namespace XEFExtract
 
         public void ProcessEvent(XEFEvent ev)
         {
+            if (ev.EventStreamDataTypeId != StreamDataTypeIds.Body)
+            {
+                return;
+            }
+
             // Update start/end time
-            if (StartTime == TimeSpan.Zero)
+            if (!_seenEvent)
             {
                 StartTime = ev.RelativeTime;
+                _seenEvent = true;
             }
             EndTime = ev.RelativeTime;
+
+            // Get raw body data
+            XEFBodyFrame bodyFrame = XEFBodyFrame.FromByteArray(ev.EventData);
+
+            for (int i = 0; i < bodyFrame.BodyData.Length; i++)
+            {
+                XEFBodyData body = bodyFrame.BodyData[i];
+                if (body.TrackingState == XEFBodyTrackingState.Tracked)
+                {
+                    // Write skeleton body
+                    _writer.Write("{0},{1},{2}",
+                        ev.EventIndex,
+                        ev.RelativeTime.Ticks,
+                        body.TrackingID);
+
+                    _writer.Write(",{0},{1}",
+                        body.HandDataLeft.HandConfidence,
+                        body.HandDataLeft.HandState);
+
+                    _writer.Write(",{0},{1}",
+                        body.HandDataRight.HandConfidence,
+                        body.HandDataRight.HandState);
+
+                    // Enumerate all joints
+                    foreach (XEFJointType jointType in Enum.GetValues(typeof(XEFJointType)))
+                    {
+                        // Write skeleton joint
+                        XEFTrackingState jointTrackingState = body.SkeletonJointPositionTrackingStates[jointType];
+                        XEFVector jointPosition = body.SkeletonJointPositions[jointType];
+                        XEFVector jointOrientation = body.SkeletonJointOrientations[jointType];
+
+                        _writer.Write(",{0},{1},{2},{3},{4}",
+                            jointType,
+                            jointTrackingState,
+                            jointPosition.x,
+                            jointPosition.y,
+                            jointPosition.z);
+
+                        _writer.Write(",{0},{1},{2},{3}",
+                            jointOrientation.w,
+                            jointOrientation.x,
+                            jointOrientation.y,
+                            jointOrientation.z);
+                    }
+
+                    _writer.WriteLine();
+                }
+            }
 
             EventCount++;
         }

@@ -130,7 +130,7 @@ EVENT DATA FORMATS
 -----------------------------------------
 BODY
 
-* TODO
+* Data is in format: https://docs.microsoft.com/en-us/previous-versions/windows/kinect/dn772770(v=ieb.10)
 
 -----------------------------------------
 COLOR
@@ -148,7 +148,7 @@ uint Version                                 (4 bytes)
 uint SubFrameCount                           (4 bytes)
 uint SubFramesAllocated                      (4 bytes)
 uint Reserved                                (4 bytes)
-                                             
+
 SubFrame[] ArrayOfSubFrames                  
 	uint SubFrameNumber                      (4 bytes)
 	uint EventBitField                       (4 bytes)

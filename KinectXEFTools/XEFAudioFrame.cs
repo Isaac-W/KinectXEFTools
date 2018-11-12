@@ -37,23 +37,58 @@ namespace KinectXEFTools
             SpkBuffer = new float[SPK_BUFFER_SIZE];
             ReservedByteArray = new byte[RESERVED_SIZE];
         }
+
+        public static XEFAudioSubframe FromReader(BinaryReader reader)
+        {
+            XEFAudioSubframe audioSubframe = new XEFAudioSubframe();
+            audioSubframe.SubFrameNumber = reader.ReadUInt32();
+            audioSubframe.EventBitField = reader.ReadUInt32();
+            audioSubframe.TimeCounter = reader.ReadUInt64();
+            audioSubframe.BeamMode = reader.ReadInt32();
+            audioSubframe.BeamAngle = reader.ReadSingle();
+            audioSubframe.BeamAngleConfidence = reader.ReadSingle();
+            audioSubframe.SpeakerTrackingIdCount = reader.ReadUInt32();
+
+            for (int j = 0; j < audioSubframe.SpeakerTrackingIds.Length; j++)
+            {
+                audioSubframe.SpeakerTrackingIds[j] = reader.ReadUInt64();
+            }
+
+            for (int j = 0; j < audioSubframe.OutBuffer.Length; j++)
+            {
+                audioSubframe.OutBuffer[j] = reader.ReadSingle();
+            }
+
+            for (int j = 0; j < audioSubframe.MicBuffer.Length; j++)
+            {
+                audioSubframe.MicBuffer[j] = reader.ReadSingle();
+            }
+
+            for (int j = 0; j < audioSubframe.SpkBuffer.Length; j++)
+            {
+                audioSubframe.SpkBuffer[j] = reader.ReadSingle();
+            }
+
+            for (int j = 0; j < audioSubframe.ReservedByteArray.Length; j++)
+            {
+                audioSubframe.ReservedByteArray[j] = reader.ReadByte();
+            }
+
+            return audioSubframe;
+        }
     }
 
-    public class XEFAudioData
+    public class XEFAudioFrame
     {
         public uint Version;
         public uint SubFrameCount;
         public uint SubFramesAllocated;
         public uint Reserved;
         public XEFAudioSubframe[] SubFrames;
-
-        public XEFAudioData()
+        
+        public static XEFAudioFrame FromByteArray(byte[] data)
         {
-        }
-
-        public static XEFAudioData FromByteArray(byte[] data)
-        {
-            XEFAudioData audioData = new XEFAudioData();
+            XEFAudioFrame audioData = new XEFAudioFrame();
             using (MemoryStream stream = new MemoryStream(data))
             {
                 using (BinaryReader reader = new BinaryReader(stream))
@@ -68,39 +103,7 @@ namespace KinectXEFTools
 
                     for (int i = 0; i < audioData.SubFrameCount; i++)
                     {
-                        audioData.SubFrames[i] = new XEFAudioSubframe();
-                        audioData.SubFrames[i].SubFrameNumber = reader.ReadUInt32();
-                        audioData.SubFrames[i].EventBitField = reader.ReadUInt32();
-                        audioData.SubFrames[i].TimeCounter = reader.ReadUInt64();
-                        audioData.SubFrames[i].BeamMode = reader.ReadInt32();
-                        audioData.SubFrames[i].BeamAngle = reader.ReadSingle();
-                        audioData.SubFrames[i].BeamAngleConfidence = reader.ReadSingle();
-                        audioData.SubFrames[i].SpeakerTrackingIdCount = reader.ReadUInt32();
-
-                        for (int j = 0; j < audioData.SubFrames[i].SpeakerTrackingIds.Length; j++)
-                        {
-                            audioData.SubFrames[i].SpeakerTrackingIds[j] = reader.ReadUInt64();
-                        }
-
-                        for (int j = 0; j < audioData.SubFrames[i].OutBuffer.Length; j++)
-                        {
-                            audioData.SubFrames[i].OutBuffer[j] = reader.ReadSingle();
-                        }
-
-                        for (int j = 0; j < audioData.SubFrames[i].MicBuffer.Length; j++)
-                        {
-                            audioData.SubFrames[i].MicBuffer[j] = reader.ReadSingle();
-                        }
-
-                        for (int j = 0; j < audioData.SubFrames[i].SpkBuffer.Length; j++)
-                        {
-                            audioData.SubFrames[i].SpkBuffer[j] = reader.ReadSingle();
-                        }
-
-                        for (int j = 0; j < audioData.SubFrames[i].ReservedByteArray.Length; j++)
-                        {
-                            audioData.SubFrames[i].ReservedByteArray[j] = reader.ReadByte();
-                        }
+                        audioData.SubFrames[i] = XEFAudioSubframe.FromReader(reader);
                     }
                 }
             }

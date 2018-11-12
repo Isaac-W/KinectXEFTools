@@ -12,6 +12,8 @@ namespace XEFExtract
         //
 
         private VideoWriter _writer;
+
+        private bool _seenEvent = false;
         
         //
         //  Properties
@@ -65,7 +67,7 @@ namespace XEFExtract
                 if (disposing)
                 {
                     // Dispose managed resources
-                    //_writer.Dispose();
+                    _writer.Dispose();
                 }
 
                 disposed = true;
@@ -83,12 +85,20 @@ namespace XEFExtract
 
         public void ProcessEvent(XEFEvent ev)
         {
+            if (ev.EventStreamDataTypeId != StreamDataTypeIds.UncompressedColor)
+            {
+                return;
+            }
+
             // Update start/end time
-            if (StartTime == TimeSpan.Zero)
+            if (!_seenEvent)
             {
                 StartTime = ev.RelativeTime;
+                _seenEvent = true;
             }
             EndTime = ev.RelativeTime;
+
+            _writer.WriteFrame(ev.EventData, ev.RelativeTime - StartTime);
 
             EventCount++;
         }

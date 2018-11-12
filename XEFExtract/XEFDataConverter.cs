@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace XEFExtract
 {
@@ -48,7 +49,6 @@ namespace XEFExtract
                 if (disposing)
                 {
                     // Dispose managed resources
-                    // TODO
                 }
 
                 disposed = true;
@@ -85,47 +85,43 @@ namespace XEFExtract
                 if (File.Exists(depthDatPath)) depthFlag = false;
             }
 
-            if (!(videoFlag || skeletonFlag || depthFlag))
-            {
-                Console.WriteLine("Skipped: " + basePath);
-                return;
-            }
-
             // Start parsing events
             try
             {
+                //
+                //  Set up XEF data converters/writers
+                //
+
+                List<IXEFDataWriter> dataWriters = new List<IXEFDataWriter>();
+                    
+                if (videoFlag)
+                {
+                    dataWriters.Add(new XEFColorWriter(rgbVideoPath));
+                    dataWriters.Add(new XEFAudioWriter(wavAudioPath));
+                }
+
+                if (skeletonFlag)
+                {
+                    dataWriters.Add(new XEFBodyWriter(skeletonPath));
+                }
+
+                if (depthFlag)
+                {
+                    dataWriters.Add(new XEFDepthWriter(depthDatPath));
+                }
+
+                if (dataWriters.Count == 0)
+                {
+                    Console.WriteLine("Skipped: " + basePath);
+                    return;
+                }
+
+                //
+                //  Process events
+                //
+
                 using (IEventReader reader = XEFEventReader.GetEventReader(path))
                 {
-                    //
-                    //  Set up XEF data converters/writers
-                    //
-
-                    List<IXEFDataWriter> dataWriters = new List<IXEFDataWriter>();
-                    
-                    if (videoFlag)
-                    {
-                        dataWriters.Add(new XEFColorWriter(rgbVideoPath));
-                    }
-                    
-                    if (videoFlag)
-                    {
-                        dataWriters.Add(new XEFAudioWriter(wavAudioPath));
-                    }
-
-                    if (skeletonFlag)
-                    {
-                        dataWriters.Add(new XEFBodyWriter(skeletonPath));
-                    }
-
-                    if (depthFlag)
-                    {
-                        dataWriters.Add(new XEFDepthWriter(depthDatPath));
-                    }
-
-                    //
-                    //  Process events
-                    //
-
                     XEFEvent ev;
                     while ((ev = reader.GetNextEvent()) != null)
                     {
@@ -134,21 +130,47 @@ namespace XEFExtract
                             dataWriter.ProcessEvent(ev);
                         }
                     }
+                }
 
-                    //
-                    //  Finalization
-                    //
+                //
+                //  Finalization
+                //
 
-                    if (videoFlag)
-                    {
-                        // Mux color and audio files into one video file
-                        // TODO
-                    }
-
+                if (videoFlag)
+                {
+                    // First determine if there were any audio events processed
+                    bool containsAudio = false;
                     foreach (IXEFDataWriter dataWriter in dataWriters)
                     {
-                        dataWriter.Close();
+                        if (dataWriter.GetType() == typeof(XEFAudioWriter))
+                        {
+                            containsAudio = dataWriter.EventCount > 0;
+                        }
                     }
+
+                    // Mux color and audio files into one video file
+                    Process ffmpegProc = new Process();
+                    ffmpegProc.StartInfo = new ProcessStartInfo()
+                    {
+                        FileName = "ffmpeg",
+                        Arguments = 
+                            $"-i {rgbVideoPath} " +
+                            $"{(containsAudio ? $"-i {wavAudioPath}" : "")} " +
+                            $"-codec copy " +
+                            $"-shortest " +
+                            $"-y {fulVideoPath}",
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                    };
+
+                    ffmpegProc.Start();
+                    ffmpegProc.WaitForExit();
+                    ffmpegProc.Close();
+                }
+
+                foreach (IXEFDataWriter dataWriter in dataWriters)
+                {
+                    dataWriter.Close();
                 }
             }
             catch (Exception ex)
