@@ -25,9 +25,9 @@ namespace KinectXEFTools
 
     public enum XEFTrackingState
     {
-        NotTracked = 0,
-        Inferred,
-        Tracked
+        NOT_TRACKED = 0,
+        INFERRED,
+        TRACKED
     }
     
     public enum XEFJointType
@@ -61,10 +61,10 @@ namespace KinectXEFTools
 
     public enum XEFExpressionConfidenceLevel
     {
-        None = 0,
-        Low,
-        High,
-        Unknown
+        NONE = 0,
+        LOW,
+        HIGH,
+        UNKNOWN
     }
 
     public class XEFExpressionData
@@ -120,10 +120,10 @@ namespace KinectXEFTools
 
     public enum XEFHandState
     {
-        Open = 0,
-        Closed,
-        Lasso,
-        Unknown
+        OPEN = 0,
+        CLOSED,
+        LASSO,
+        UNKNOWN
     }
 
     public class XEFHandData
@@ -162,8 +162,8 @@ namespace KinectXEFTools
 
     public enum XEFBodyTrackingState
     {
-        NotTracked = 0,
-        Tracked
+        NOT_TRACKED = 0,
+        TRACKED
     }
 
     public class XEFBodyData

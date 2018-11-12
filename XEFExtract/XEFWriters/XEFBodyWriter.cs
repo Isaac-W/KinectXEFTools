@@ -112,7 +112,7 @@ namespace XEFExtract
             for (int i = 0; i < bodyFrame.BodyData.Length; i++)
             {
                 XEFBodyData body = bodyFrame.BodyData[i];
-                if (body.TrackingState == XEFBodyTrackingState.Tracked)
+                if (body.TrackingState == XEFBodyTrackingState.TRACKED)
                 {
                     // Write skeleton body
                     _writer.Write("{0},{1},{2}",
