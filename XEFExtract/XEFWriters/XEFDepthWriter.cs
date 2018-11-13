@@ -66,10 +66,10 @@ namespace XEFExtract
         {
             if (!disposed)
             {
-                UpdateFrameCount();
-
                 if (disposing)
                 {
+                    UpdateFrameCount();
+
                     // Dispose managed resources
                     _writer.Dispose();
                 }
