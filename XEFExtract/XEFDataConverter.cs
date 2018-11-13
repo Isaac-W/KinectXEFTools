@@ -160,11 +160,12 @@ namespace XEFExtract
                         {
                             FileName = "ffmpeg",
                             Arguments =
-                                $"-i {rgbVideoPath} " +
-                                (containsAudio ? $"-i {wavAudioPath} " : "") +
+                                $"-i \"{rgbVideoPath}\" " +
+                                (containsAudio ? $"-i \"{wavAudioPath}\" " : "") +
                                 $"-codec copy " +
                                 $"-shortest " +
-                                $"-y {fulVideoPath}",
+                                $"-y " +
+                                $"\"{fulVideoPath}\"",
                             UseShellExecute = false,
                             CreateNoWindow = true,
                         };

@@ -121,6 +121,8 @@ namespace XEFExtract
                 {
                     FileName = "ffmpeg",
                     Arguments =
+                        $"-v quiet " + // Hide all messages
+                        $"-stats " + // Only see video output stats
                         $"-f rawvideo " +
                         $"-pixel_format {FormatNames[inputFormat]} " +
                         $"-video_size {width}x{height} " +
@@ -129,9 +131,9 @@ namespace XEFExtract
                         $"-c:v {CodecNames[outputFormat]} " +
                         (bitrate > 0 ? $"-b:v {bitrate} " : "") +
                         $"-y " +
-                        $"{path}",
+                        $"\"{path}\"",
                     UseShellExecute = false,
-                    CreateNoWindow = true,
+                    CreateNoWindow = false, // Set to false to see ffmpeg output (good progress indicator)
                     RedirectStandardInput = true,
                 };
                 _ffmpegProcess.Start();
