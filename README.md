@@ -17,13 +17,13 @@ Current Progress
 
 - [X] Extracting audio from XEF
 - [X] Extracting depth frames from XEF
-- [ ] Extracting color frames from XEF
-- [ ] Extracting body skeletons from XEF
+- [X] Extracting color frames from XEF
+- [X] Extracting body skeletons from XEF
 
 - [X] Saving extracted audio data as WAVE file
 - [ ] Saving depth frames as video
-- [ ] Saving color frames as video
-- [ ] Saving skeleton data to file
+- [X] Saving color frames as video
+- [X] Saving skeleton data to file
 
 - [ ] Make NuGet package for KinectXEFTools library
 - [ ] Add additional examples of usage
