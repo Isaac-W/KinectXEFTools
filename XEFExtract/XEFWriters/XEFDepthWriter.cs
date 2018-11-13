@@ -43,6 +43,7 @@ namespace XEFExtract
             EndTime = TimeSpan.Zero;
 
             _writer = new BinaryWriter(new FileStream(path, FileMode.Create));
+            WriteHeaders();
         }
 
         ~XEFDepthWriter()
