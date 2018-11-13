@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 
 namespace XEFExtract
 {
     public class VideoWriter : IDisposable
     {
+        private const int TICKS_PER_SECOND = 10000000;
+
         public enum FrameFormat
         {
             RGB24,
@@ -57,8 +60,14 @@ namespace XEFExtract
         //  Members
         //
 
+        private TimeSpan _frameDuration;
+
+        private byte[] _lastFrameData;
+
         private Process _ffmpegProcess;
-        
+
+        private BinaryWriter _writer;
+
         //
         //  Properties
         //
@@ -76,6 +85,10 @@ namespace XEFExtract
         public int Framerate { get; private set; }
 
         public int Bitrate { get; private set; }
+
+        public int FrameCount { get; private set; }
+
+        public TimeSpan Duration { get { return FrameToTime(FrameCount); } }
 
         //
         //  Constructor
@@ -95,21 +108,41 @@ namespace XEFExtract
             Height = height;
             Framerate = framerate;
             Bitrate = bitrate;
+            FrameCount = 0;
 
-            if (!VerifyFFMPEG())
+            _frameDuration = FrameToTime(1);
+            _lastFrameData = null;
+
+            try
             {
+                // Start process and open streams
+                _ffmpegProcess = new Process();
+                _ffmpegProcess.StartInfo = new ProcessStartInfo()
+                {
+                    FileName = "ffmpeg",
+                    Arguments =
+                        $"-f rawvideo " +
+                        $"-pixel_format {FormatNames[inputFormat]} " +
+                        $"-video_size {width}x{height} " +
+                        $"-framerate {framerate} " +
+                        $"-i - " +
+                        $"-c:v {CodecNames[outputFormat]} " +
+                        (bitrate > 0 ? $"-b:v {bitrate} " : "") +
+                        $"-y " +
+                        $"{path}",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardInput = true,
+                };
+                _ffmpegProcess.Start();
+            }
+            catch (Exception)
+            {
+                _ffmpegProcess.Dispose();
                 throw new Exception("Could not initalize process! Please ensure FFMPEG is installed and part of the system path.");
             }
 
-            // Start process and open streams
-            _ffmpegProcess = new Process();
-            _ffmpegProcess.StartInfo = new ProcessStartInfo()
-            {
-                FileName = "ffmpeg",
-                Arguments = $"-i - -input_",
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
+            _writer = new BinaryWriter(_ffmpegProcess.StandardInput.BaseStream);
         }
 
         ~VideoWriter()
@@ -136,7 +169,8 @@ namespace XEFExtract
                 if (disposing)
                 {
                     // Dispose managed resources
-                    // TODO Finish writing video and close streams/process
+                    _writer.Dispose(); // Need to close stream otherwise FFMPEG won't exit!
+                    _ffmpegProcess.WaitForExit();
                     _ffmpegProcess.Dispose();
                 }
 
@@ -148,31 +182,9 @@ namespace XEFExtract
         //  Methods
         //
 
-        private bool VerifyFFMPEG()
+        private TimeSpan FrameToTime(int frame)
         {
-            Process process = new Process();
-            process.StartInfo = new ProcessStartInfo()
-            {
-                FileName = "ffmpeg",
-                Arguments = "",
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            try
-            {
-                process.Start();
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-            finally
-            {
-                process.Close();
-            }
-
-            return true;
+            return TimeSpan.FromTicks((long)frame * TICKS_PER_SECOND / Framerate);
         }
 
         public void Close()
@@ -180,15 +192,31 @@ namespace XEFExtract
             Dispose(true);
         }
 
-        /*
-        // Combine audio and RGB video streams
-        Process ffmpegProc = new Process();
-        ffmpegProc.StartInfo.FileName = PATH_TO_FFMPEG;
-        ffmpegProc.StartInfo.Arguments = "-i " + rgbVideoPath + " -i " + wavAudioPath + " -codec copy -shortest -y " + recordingBaseName + "_Video.mp4";
+        public void WriteFrame(byte[] frameData)
+        {
+            _writer.Write(frameData);
+            _lastFrameData = frameData;
+            FrameCount++;
+        }
 
-        ffmpegProc.Start();
-        ffmpegProc.WaitForExit();
-        ffmpegProc.Close();
-        */
+        public void WriteFrame(byte[] frameData, TimeSpan timestamp)
+        {
+            if (_lastFrameData != null)
+            {
+                // Skip frame if more than a frame behind
+                if (timestamp + _frameDuration < Duration)
+                {
+                    return;
+                }
+
+                // Pad frames if timestamp is over a frame away
+                while (Duration + _frameDuration < timestamp)
+                {
+                    WriteFrame(_lastFrameData);
+                }
+            }
+
+            WriteFrame(frameData);
+        }
     }
 }

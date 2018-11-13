@@ -40,7 +40,13 @@ namespace XEFExtract
             StartTime = TimeSpan.Zero;
             EndTime = TimeSpan.Zero;
 
-            _writer = new VideoWriter(path, VideoWriter.FrameFormat.YUYV422, VideoWriter.VideoCodec.H264, 1920, 1080, 30);
+            _writer = new VideoWriter(path,
+                VideoWriter.FrameFormat.YUYV422,
+                VideoWriter.VideoCodec.MPEG4,
+                1920,
+                1080,
+                30,
+                10000000);
         }
 
         ~XEFColorWriter()

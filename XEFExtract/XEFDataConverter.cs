@@ -136,6 +136,11 @@ namespace XEFExtract
                 //  Finalization
                 //
 
+                foreach (IXEFDataWriter dataWriter in dataWriters)
+                {
+                    dataWriter.Close();
+                }
+
                 if (videoFlag)
                 {
                     // First determine if there were any audio events processed
@@ -149,28 +154,24 @@ namespace XEFExtract
                     }
 
                     // Mux color and audio files into one video file
-                    Process ffmpegProc = new Process();
-                    ffmpegProc.StartInfo = new ProcessStartInfo()
+                    using (Process ffmpegProc = new Process())
                     {
-                        FileName = "ffmpeg",
-                        Arguments = 
-                            $"-i {rgbVideoPath} " +
-                            $"{(containsAudio ? $"-i {wavAudioPath}" : "")} " +
-                            $"-codec copy " +
-                            $"-shortest " +
-                            $"-y {fulVideoPath}",
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                    };
+                        ffmpegProc.StartInfo = new ProcessStartInfo()
+                        {
+                            FileName = "ffmpeg",
+                            Arguments =
+                                $"-i {rgbVideoPath} " +
+                                (containsAudio ? $"-i {wavAudioPath} " : "") +
+                                $"-codec copy " +
+                                $"-shortest " +
+                                $"-y {fulVideoPath}",
+                            UseShellExecute = false,
+                            CreateNoWindow = true,
+                        };
 
-                    ffmpegProc.Start();
-                    ffmpegProc.WaitForExit();
-                    ffmpegProc.Close();
-                }
-
-                foreach (IXEFDataWriter dataWriter in dataWriters)
-                {
-                    dataWriter.Close();
+                        ffmpegProc.Start();
+                        ffmpegProc.WaitForExit();
+                    }
                 }
             }
             catch (Exception ex)
