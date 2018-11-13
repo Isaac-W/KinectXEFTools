@@ -46,7 +46,7 @@ namespace XEFExtract
                 1920,
                 1080,
                 30,
-                10000000);
+                4000000);
         }
 
         ~XEFColorWriter()
