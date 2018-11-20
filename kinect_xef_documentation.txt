@@ -17,54 +17,60 @@ ulong        (8) | size of all data (?)
 -----------------------------------------
 FILE METADATA:
 
-* Skipping these for now as they don't matter for data extraction
-* For implementations, just seek to the address of the first stream
+* A series of events (with stream index 0) followed by an event that has a stream index > 0 (the first stream description)
+* For compressed streams, followed by a "pseudo"-event that has 0xFFFF as stream index and 0x0000 as stream flags -- this marks the file as archived
+* Metadata events follow the same format as normal events (see below), with a fixed tag length
+
+* Tag length: 24 bytes (0x18) -- contains GUID encoded as hex
+* First event data begins with the string "Properties"
 
 
 -----------------------------------------
 STREAMS:
 
 Uncompressed streams:
-* Start address: 0x4B4
+* Starts immediately after metadata events (where stream index > 0)
 * Record length: 486 (0x1E6) bytes
 * Event data start: 0x4B4 + 0x1E6 * num_of_streams
 
 Compressed streams:
-* First value at 0x4B4 is 0x0000FFFF -- signaling that the file is archived
-* Start address: 0xC4CC
-* Record length: 494 (0x1EE) bytes
+* Start address: 0xC018 after end of metadata events (the first "event" after metadata has index 0xFFFF)
+* Record length: 494 (0x1EE) bytes (contains additional compressed data chunk after stream description data)
 * Event data stored sequentially with each stream
 
 -----------------------------------------
 STREAM DESCRIPTIONS:
 
-* Note that the stream metadata appear to generally follow the event format, with the exception that the data length is incorrect and doesn't signify the actual length of the record
+* Note that the stream metadata appear to generally follow the event format, with the exception that there is extra data at the end for compressed streams
+* Stream descriptions consist of two events: the first containing the name of the stream as data, and the second containing an unknown GUID and the stream semantic GUID
 
-ushort       (2) | stream index
-ushort       (2) | stream flags (should be 0)
-
-uint         (4) | size of record (? ...not always true)
-ulong        (8) | null (probably timestamp)
-uint         (4) | unknown
-uint         (4) | size of record (?)
-
+NAME EVENT:
+* Tag data (24 bytes):
 ushort       (2) | stream index
 ushort       (2) | stream flags (if set to 1, the stream is compressed)
 guid        (16) | stream data type id
 uint         (4) | null
-char[128]  (256) | stream name
 
-ushort       (2) | unknown (cookie value 0x3333)
+* Event data (292 bytes):
+wchar[128] (256) | stream name (UTF-16)
+ushort       (2) | unknown (cookie value 0x3333?)
 ushort       (2) | tag size
-uint         (4) | unknown (cookie value 0x00000004)
-uint         (4) | null
+ulong        (8) | unknown
 ushort       (2) | stream index
 ushort       (2) | stream flags
+byte[20]         | unknown data
 
-byte[72*]  (72*) | unknown chunk of data <-- NOTE: length is 80 bytes for compressed streams
+FOR COMPRESSED STREAMS:
+byte[8]          | compressed chunk of data
 
-char[78]    (78) | string representing unknown guid
-guid        (16) | stream semantic id
+GUID EVENT:
+* Tag data (24 bytes):
+byte[24]         | unknown
+
+* Event data:
+uint         (4) | unknown
+wchar[39]   (78) | unknown guid string
+byte[16]         | stream semantic id
 
 
 -----------------------------------------

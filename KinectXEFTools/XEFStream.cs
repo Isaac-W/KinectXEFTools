@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace KinectXEFTools
 {
     public class XEFStream
     {
+        private int _eventsCount;
+
         public XEFStream(short index, short flags, int tagSize, string dataTypeName, Guid dataTypeId, Guid semanticId)
         {
-            EventCount = 0;
+            _eventsCount = 0;
             StreamIndex = index;
             StreamFlags = flags;
             DataTypeName = dataTypeName;
@@ -15,7 +18,7 @@ namespace KinectXEFTools
             SemanticId = semanticId;
         }
 
-        public int EventCount { get; private set; }
+        public int EventCount { get { return _eventsCount; } }
 
         public short StreamIndex { get; private set; }
 
@@ -33,9 +36,10 @@ namespace KinectXEFTools
 
         public bool IsCompressed { get { return (StreamFlags & DataConstants.FLAG_COMPRESSED) == DataConstants.FLAG_COMPRESSED; } }
 
-        public void IncrementEventCount()
+        public void AddEvent(XEFEvent xefEvent)
         {
-            EventCount++;
+            // TODO Not storing events because it loads too much data into memory
+            _eventsCount++;
         }
 
         public override string ToString()

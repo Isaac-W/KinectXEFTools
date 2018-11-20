@@ -39,40 +39,37 @@ namespace KinectXEFTools
         public static readonly Guid Depth             = new Guid("{0a3914d6-3b16-11e1-aac3-001e4fd58c0f}");
         public static readonly Guid Ir                = new Guid("{0a3914d7-3b16-11e1-aac3-001e4fd58c0f}");
         public static readonly Guid Audio             = new Guid("{787c7abd-9f6e-4a85-8d67-6365ff80cc69}");
+        public static readonly Guid Properties        = new Guid("{8083a32f-d7b4-449b-99b9-44c6fcd97570}");
         public static readonly Guid Null              = new Guid("{00000000-0000-0000-0000-000000000000}");
     }
 
     public class DataConstants
     {
         public const short FLAG_COMPRESSED = 0x0001;
-        
+
+        public const int METADATA_TAG_SIZE = 0x18;
+
         public const int STREAM_COUNT_ADDRESS = 0xC;
         public const int STREAM_COUNT_SIZE = 4; // int
 
-        public const int STREAM_DESC_START_ADDRESS = 0x4B4;
-        public const int STREAM_DESC_SIZE = 486;
+        public const int EVENT_DEFAULT_TAG_SIZE = 24;
 
-        public const short ARC_STREAM_DESC_INDEX_KEY = -1;
-        public const int ARC_STREAM_DESC_START_ADDRESS = 0x4B4;
-        public const int ARC_STREAM_FIRST_EVENT_ADDRESS = 0xC4CC;
-        public const int ARC_STREAM_DESC_SIZE = 494;
-        public const int ARC_STREAM_UNK_SIZE = 80;
-
+        // Stream description data
+        public const int STREAM_INDEX_OFFSET = 0;
+        public const int STREAM_FLAGS_OFFSET = 2;
+        public const int STREAM_TYPID_OFFSET = 4;
         public const int STREAM_TYPID_SIZE = 16; // guid
+
         public const int STREAM_NAME_SIZE = 256; // wstr
-        public const int STREAM_UNK_SIZE = 72;
-        public const int STREAM_UNK_GUID_SIZE = 78;
+        public const int STREAM_TAGSIZE_OFFSET = 258;
+
+        public const int STREAM_SEMID_OFFSET = 82;
         public const int STREAM_SEMID_SIZE = 16; // guid
 
-        public const int EVENT_HEADER_INDEX_SIZE = 4;
-        public const int EVENT_HEADER_SIZE = 24;
+
+        public const int ARC_STREAM_EXTRA_UNK_SIZE = 8;
 
         public const short EVENT_UNKRECORD_INDEX = -1;
-        public const int EVENT_UNKRECORD_SHORT_SIZE = 0x6000;
-        public const int EVENT_UNKRECORD_SIZE = 0x7000;
-        public const int EVENT_UNKRECORD_LONG_SIZE = 0xC000;
-        public const int EVENT_UNKID_SHORT = 0x9;
-        public const int EVENT_UNKID_LONG = 0x14;
 
         public const int FOOTER_INDEX_SIZE = 2; // ushort
         public const int FOOTER_SIZE = 0x6B0;

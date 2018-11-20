@@ -16,8 +16,11 @@ namespace KinectXEFTools
             RawEventData = eventData;
             Unknown = unknown;
 
-            EventIndex = EventStream.EventCount;
-            EventStream.IncrementEventCount(); // Need to tell stream that an event has been added
+            if (EventStream != null)
+            {
+                EventIndex = EventStream.EventCount;
+                EventStream.AddEvent(this); // Need to tell stream that an event has been added
+            }
         }
 
         public XEFStream EventStream { get; private set; }
@@ -28,13 +31,13 @@ namespace KinectXEFTools
 
         public TimeSpan RelativeTime { get; private set; }
 
-        public int TagDataSize { get { return EventStream.TagSize; } }
+        public int TagDataSize { get { return EventStream == null ? DataConstants.EVENT_DEFAULT_TAG_SIZE : EventStream.TagSize; } }
 
         public int EventDataSize { get; private set; }
 
-        public Guid EventStreamSemanticId { get { return EventStream.SemanticId; } }
+        public Guid EventStreamSemanticId { get { return EventStream == null ? Guid.Empty : EventStream.SemanticId; } }
 
-        public Guid EventStreamDataTypeId { get { return EventStream.DataTypeId; } }
+        public Guid EventStreamDataTypeId { get { return EventStream == null ? Guid.Empty : EventStream.DataTypeId; } }
 
         public byte[] TagData { get; private set; }
 
@@ -70,7 +73,7 @@ namespace KinectXEFTools
 
         public byte[] RawEventData { get; private set; }
 
-        public bool IsCompressed { get { return EventStream.IsCompressed; } }
+        public bool IsCompressed { get { return EventStream == null ? false : EventStream.IsCompressed; } }
 
         public uint Unknown { get; private set; } // TODO Unknown data found in event (could be some index or id)
 

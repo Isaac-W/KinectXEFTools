@@ -120,7 +120,7 @@ namespace XEFExtract
                 //  Process events
                 //
 
-                using (IEventReader reader = XEFEventReader.GetEventReader(path))
+                using (IEventReader reader = new XEFEventReader(path))
                 {
                     XEFEvent ev;
                     while ((ev = reader.GetNextEvent()) != null)
