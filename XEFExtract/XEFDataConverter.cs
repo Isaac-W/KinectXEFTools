@@ -59,7 +59,7 @@ namespace XEFExtract
         //  Methods
         //
 
-        public void ConvertFile(string path)
+        public void ConvertFile(string path, Stream input = null)
         {
             //
             //  Set up filenames
@@ -120,7 +120,7 @@ namespace XEFExtract
                 //  Process events
                 //
 
-                using (IEventReader reader = new XEFEventReader(path))
+                using (IEventReader reader = (input == null) ? new XEFEventReader(path) : new XEFEventStreamReader(input) as IEventReader)
                 {
                     XEFEvent ev;
                     while ((ev = reader.GetNextEvent()) != null)

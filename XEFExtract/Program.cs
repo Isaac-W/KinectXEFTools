@@ -10,6 +10,7 @@ namespace XEFExtract
         static bool skeletonFlag = false;
         static bool depthFlag = false;
         static bool resumeFlag = false;
+        static bool stdinFlag = false;
 
         static void ParseDirectory(DirectoryInfo di)
         {
@@ -54,6 +55,8 @@ namespace XEFExtract
             Console.WriteLine();
             Console.WriteLine("\t-resume : Resume extraction (skips existing files)");
             Console.WriteLine();
+            Console.WriteLine("\t-i : Read from stdin (still requires path for output)");
+            Console.WriteLine();
             Console.WriteLine("\tpath/file : Directory or File to convert");
 
         }
@@ -86,6 +89,9 @@ namespace XEFExtract
                         case "-resume":
                             resumeFlag = true;
                             break;
+                        case "-i":
+                            stdinFlag = true;
+                            break;
                         default:
                             Console.WriteLine("Illegal argument: " + args[i]);
                             WriteUsage();
@@ -109,12 +115,26 @@ namespace XEFExtract
                 Console.WriteLine("No input file/directory provided.");
                 WriteUsage();
             }
+            else if (stdinFlag)
+            {
+                using (XEFDataConverter xdc = new XEFDataConverter()
+                {
+                    UseVideo = videoFlag,
+                    UseSkeleton = skeletonFlag,
+                    UseDepth = depthFlag,
+                    ResumeConversion = resumeFlag
+                })
+                {
+                    using (Stream stdin = Console.OpenStandardInput())
+                    {
+                        xdc.ConvertFile(path, stdin);
+                    }
+                }
+            }
             else if (Directory.Exists(@path))
             {
-
                 DirectoryInfo di = new DirectoryInfo(path);
                 ParseDirectory(di);
-
             }
             else if (File.Exists(@path))
             {
