@@ -108,7 +108,7 @@ if (body.TrackingState == XEFBodyTrackingState.TRACKED)
 }
 ```
 
-Other examples of using the library can be found by l
+Other examples of using the library can be found by browsing the source for the XEFExtract project under `examples/`.
 
 Current Progress
 ----------------
