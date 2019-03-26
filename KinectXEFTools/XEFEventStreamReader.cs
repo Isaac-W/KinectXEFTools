@@ -452,8 +452,8 @@ namespace KinectXEFTools
         /// <summary>
         /// Gets all events from the file.
         /// </summary>
-        /// <returns>An IEnumerable of all the XEFEvents.</returns>
-        public IEnumerable<XEFEvent> GetAllEvents()
+        /// <returns>An IReadOnlyList of all the XEFEvents.</returns>
+        public IReadOnlyList<XEFEvent> GetAllEvents()
         {
             // Reset reader
             _reader.BaseStream.Position = _eventStartAddress;
@@ -477,8 +477,8 @@ namespace KinectXEFTools
         /// Gets all events of specified type from the file.
         /// </summary>
         /// <param name="streamDataType">The event type to retrieve.</param>
-        /// <returns>An IEnumerable of all the XEFEvents.</returns>
-        public IEnumerable<XEFEvent> GetAllEvents(Guid streamDataType)
+        /// <returns>An IReadOnlyList of all the XEFEvents.</returns>
+        public IReadOnlyList<XEFEvent> GetAllEvents(Guid streamDataType)
         {
             return GetAllEvents(new Guid[] { streamDataType });
         }
@@ -487,8 +487,8 @@ namespace KinectXEFTools
         /// Gets all events of specified types from the file.
         /// </summary>
         /// <param name="streamDataTypes">The event type to retrieve.</param>
-        /// <returns>An IEnumerable of all the XEFEvents.</returns>
-        public IEnumerable<XEFEvent> GetAllEvents(ICollection<Guid> streamDataTypes)
+        /// <returns>An IReadOnlyList of all the XEFEvents.</returns>
+        public IReadOnlyList<XEFEvent> GetAllEvents(ICollection<Guid> streamDataTypes)
         {
             // Reset reader
             _reader.BaseStream.Position = _eventStartAddress;
