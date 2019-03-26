@@ -21,7 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\KinectXEFTools\KinectXEFTools.csproj" />
+    <ProjectReference Include="..\..\KinectXEFTools\KinectXEFTools.csproj" />
   </ItemGroup>
 
 </Project>

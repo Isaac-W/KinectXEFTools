@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2050
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KinectXEFTools", "KinectXEFTools\KinectXEFTools.csproj", "{C6012D25-13E6-48BD-BC38-F8818262AE04}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KinectXEFTools", "KinectXEFTools.csproj", "{C6012D25-13E6-48BD-BC38-F8818262AE04}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
