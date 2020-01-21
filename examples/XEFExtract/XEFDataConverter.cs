@@ -3,11 +3,19 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Newtonsoft.Json;
 
 namespace XEFExtract
 {
     public class XEFDataConverter : IDisposable
     {
+        private struct ErrorInfo
+        {
+            public ICollection<XEFStream> streamList;
+            public XEFEvent previousEvent;
+            public XEFEvent currentEvent;
+        }
+
         //
         //  Properties
         //
@@ -122,12 +130,44 @@ namespace XEFExtract
 
                 using (IEventReader reader = (input == null) ? new XEFEventReader(path) : new XEFEventStreamReader(input) as IEventReader)
                 {
+                    XEFEvent lastEvent = null;
                     XEFEvent ev;
-                    while ((ev = reader.GetNextEvent()) != null)
+
+                    try
                     {
-                        foreach (IXEFDataWriter dataWriter in dataWriters)
+                        while ((ev = reader.GetNextEvent()) != null)
                         {
-                            dataWriter.ProcessEvent(ev);
+                            foreach (IXEFDataWriter dataWriter in dataWriters)
+                            {
+                                dataWriter.ProcessEvent(ev);
+                            }
+
+                            lastEvent = ev;
+                        }
+                    }
+                    finally
+                    {
+                        // Check for error and dump values
+                        if (reader.StreamError)
+                        {
+                            XEFEvent badEvent = reader.CurrentEvent;
+
+                            // Redact previous event data
+                            Array.Clear(lastEvent.EventData, 0, lastEvent.EventData.Length);
+
+                            // Write previous event, broken event, and streamlist
+                            ErrorInfo ei = new ErrorInfo()
+                            {
+                                streamList = reader.StreamList,
+                                previousEvent = lastEvent,
+                                currentEvent = badEvent
+                            };
+
+                            using (StreamWriter dumpWriter = new StreamWriter("./dump.txt", true))
+                            {
+                                dumpWriter.WriteLine(JsonConvert.SerializeObject(ei, Formatting.Indented));
+                            }
+                            Console.WriteLine("Errors encountered. Wrote error dump to ./dump.txt");
                         }
                     }
                 }
