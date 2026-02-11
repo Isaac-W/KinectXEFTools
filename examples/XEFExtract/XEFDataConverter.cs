@@ -122,13 +122,22 @@ namespace XEFExtract
 
                 using (IEventReader reader = (input == null) ? new XEFEventReader(path) : new XEFEventStreamReader(input) as IEventReader)
                 {
-                    XEFEvent ev;
-                    while ((ev = reader.GetNextEvent()) != null)
+                    try
                     {
-                        foreach (IXEFDataWriter dataWriter in dataWriters)
+                        XEFEvent ev;
+                        while ((ev = reader.GetNextEvent()) != null)
                         {
-                            dataWriter.ProcessEvent(ev);
+                            Console.WriteLine(ev);
+                            foreach (IXEFDataWriter dataWriter in dataWriters)
+                            {
+                                dataWriter.ProcessEvent(ev);
+                            }
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.Error.WriteLine("Error reading events from file: " + path);
+                        Console.Error.WriteLine("Exception thrown: " + ex.Message);
                     }
                 }
 
