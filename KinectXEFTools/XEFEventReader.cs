@@ -34,6 +34,10 @@ namespace KinectXEFTools
 
         public int StreamCount { get { return Math.Max(_streams.Count, _totalReportedStreams); } }
 
+        public ICollection<XEFStream> StreamList { get { return _streams.Values; } }
+
+        public XEFEvent CurrentEvent { get; private set; }
+
         //
         //	Constructor
         //
@@ -202,28 +206,33 @@ namespace KinectXEFTools
         {
             if (!EndOfStream)
             {
+                short streamIndex = 0, streamFlags = 0;
+                int dataSize = 0, fullDataSize = 0, frameIndex = 0;
+                uint unknown = 0;
+                byte[] tagData = null, eventData = null;
+                XEFStream eventStream = null;
+                TimeSpan relativeTime = TimeSpan.Zero;
+
+                long startPosition = _reader.BaseStream.Position;
+
                 try
                 {
-                    short streamIndex = _reader.ReadInt16();
-                    short streamFlags = _reader.ReadInt16();
+                    streamIndex = _reader.ReadInt16();
+                    streamFlags = _reader.ReadInt16();
 
                     // Get event stream
-                    XEFStream eventStream = null;
                     if (_streams.ContainsKey(streamIndex))
                     {
                         eventStream = _streams[streamIndex];
                     }
 
                     // Read event metadata
-                    int dataSize = _reader.ReadInt32();
-                    TimeSpan relativeTime = TimeSpan.FromTicks(_reader.ReadInt64());
-                    uint unknown = _reader.ReadUInt32();
-                    int fullDataSize = _reader.ReadInt32(); // Uncompressed data size
+                    dataSize = _reader.ReadInt32();
+                    relativeTime = TimeSpan.FromTicks(_reader.ReadInt64());
+                    unknown = _reader.ReadUInt32();
+                    fullDataSize = _reader.ReadInt32(); // Uncompressed data size
 
                     // Read tag if needed
-                    byte[] tagData = null;
-                    int frameIndex = 0;
-
                     if (eventStream != null)
                     {
                         if (eventStream.TagSize > 0)
@@ -244,7 +253,7 @@ namespace KinectXEFTools
                     }
 
                     // Read event data
-                    byte[] eventData = _reader.ReadBytes(dataSize);
+                    eventData = _reader.ReadBytes(dataSize);
 
                     // Check end of stream (shouldn't ever reach due to XEF footer)
                     if (_reader.BaseStream.Position == _reader.BaseStream.Length)
@@ -252,10 +261,24 @@ namespace KinectXEFTools
                         EndOfStream = true;
                     }
 
-                    return new XEFEvent(eventStream, frameIndex, relativeTime, fullDataSize, tagData, eventData, unknown);
+                    CurrentEvent = new XEFEvent(eventStream, frameIndex, relativeTime, fullDataSize, tagData, eventData, unknown);
+                    return CurrentEvent;
                 }
                 catch (IOException)
                 {
+                    EndOfStream = true;
+                    StreamError = true;
+                }
+                catch (ArgumentOutOfRangeException ex)
+                {
+                    Console.Error.WriteLine("Unknown data event detected! Aborting...");
+                    Console.Error.WriteLine(ex.ToString());
+
+                    // Read a few bytes of data for dump
+                    _reader.BaseStream.Position = startPosition;
+                    eventData = _reader.ReadBytes(256);
+                    CurrentEvent = new XEFEvent(eventStream, frameIndex, relativeTime, fullDataSize, tagData, eventData, unknown);
+
                     EndOfStream = true;
                     StreamError = true;
                 }

@@ -136,6 +136,10 @@ namespace KinectXEFTools
 
         public int StreamCount { get { return Math.Max(_streams.Count, _totalReportedStreams); } }
 
+        public ICollection<XEFStream> StreamList { get { return _streams.Values; } }
+
+        public XEFEvent CurrentEvent { get; private set; }
+
         //
         //	Constructor
         //
@@ -371,7 +375,8 @@ namespace KinectXEFTools
                     // Read event data
                     byte[] eventData = _reader.ReadBytes(dataSize);
                     
-                    return new XEFEvent(eventStream, frameIndex, relativeTime, fullDataSize, tagData, eventData, unknown);
+                    CurrentEvent = new XEFEvent(eventStream, frameIndex, relativeTime, fullDataSize, tagData, eventData, unknown);
+                    return CurrentEvent;
                 }
                 catch (IOException)
                 {
