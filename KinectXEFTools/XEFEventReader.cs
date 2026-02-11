@@ -291,6 +291,8 @@ namespace KinectXEFTools
                 }
                 else if (!_streams.ContainsKey(streamIndex)) // Check if is stream description event (first event with given index)
                 {
+                    Debug.Assert(streamIndex >= 0 && streamIndex <= _streams.Count + 1);
+
                     _streams[streamIndex] = ReadStreamDescription();
 
                     // Return next event
