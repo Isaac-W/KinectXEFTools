@@ -130,6 +130,8 @@ namespace KinectXEFTools
 
         public string FilePath { get; private set; }
 
+        public long FilePosition { get { return _reader.BaseStream.Position; } }
+
         public bool EndOfStream { get; private set; }
 
         public bool StreamError { get; private set; }

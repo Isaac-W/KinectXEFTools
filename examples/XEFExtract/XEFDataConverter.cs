@@ -137,7 +137,7 @@ namespace XEFExtract
                     {
                         while ((ev = reader.GetNextEvent()) != null)
                         {
-                            Console.WriteLine(ev);
+                            //Debug.WriteLine(ev);
                             foreach (IXEFDataWriter dataWriter in dataWriters)
                             {
                                 dataWriter.ProcessEvent(ev);
@@ -147,8 +147,9 @@ namespace XEFExtract
                     }
                     catch (Exception ex)
                     {
-                        Console.Error.WriteLine("Error reading events from file: " + path);
-                        Console.Error.WriteLine("Exception thrown: " + ex.Message);
+                        Console.Error.WriteLine($"Error reading events from file: {path}");
+                        Console.Error.WriteLine($"Failure at byte: {reader.FilePosition} (0x{reader.FilePosition:x8})");
+                        Console.Error.WriteLine($"Exception thrown: {ex.Message}");
                     }
                     finally
                     {

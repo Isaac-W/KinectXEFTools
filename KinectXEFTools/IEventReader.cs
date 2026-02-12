@@ -8,6 +8,7 @@ namespace KinectXEFTools
     {
         bool StreamError { get; }
         string FilePath { get; }
+        long FilePosition { get; }
         bool EndOfStream { get; }
         int StreamCount { get; }
         ICollection<XEFStream> StreamList { get; }

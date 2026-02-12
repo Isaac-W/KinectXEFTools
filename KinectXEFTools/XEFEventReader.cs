@@ -28,6 +28,8 @@ namespace KinectXEFTools
 
         public string FilePath { get; private set; }
 
+        public long FilePosition { get { return _reader.BaseStream.Position; } }
+
         public bool EndOfStream { get; private set; }
 
         public bool StreamError { get; private set; }
@@ -96,7 +98,7 @@ namespace KinectXEFTools
             {
                 //throw new Exception("Error reading XEF! The file may be corrupt.");
                 // This is fine for archived streams; should be able to recover
-                _totalReportedStreams = int.MaxValue; // Set to large value to avoid issues with IsValidStreamIndex()
+                _totalReportedStreams = 20; // Set to 20; reasonable number -- DON'T SET TO MAX_INT AS WE WILL MISS UNKNOWN EVENTS
             }
             _totalReportedStreams--; // For some reason, XEF inflates the count by 1
             _totalDataSize = _reader.ReadInt64();
@@ -174,10 +176,13 @@ namespace KinectXEFTools
             Debug.Assert(streamIndex == DataConstants.EVENT_UNKRECORD_INDEX);
             //Debug.Assert(streamFlags == 0);
 
+            Debug.WriteLine($"UNKNOWN: 0x{_reader.BaseStream.Position:x8} | Index: 0x{streamIndex:x2}, Flags: 0x{streamFlags:x2}");
+
             int unkId = _reader.ReadInt32(); // Unknown id
             _reader.ReadInt64(); // Timestamp
             _reader.ReadInt32(); // Null
             _reader.ReadInt32(); // Null
+
 
             // Right now, we'll just heuristically skip through by 0x1000 at a time until we find a valid stream id
             // TODO Figure out better way to identify how long an unknown record is
@@ -185,11 +190,15 @@ namespace KinectXEFTools
             short peekIndex, peekFlags;
             PeekEventKey(out peekIndex, out peekFlags);
 
+            Debug.WriteLine($"  UNK 1: 0x{_reader.BaseStream.Position:x8} | Index: 0x{streamIndex:x2}, Flags: 0x{streamFlags:x2}");
+
             if (!IsValidStreamIndex(peekIndex))
             {
                 // Try next position (0x7000 total length)
                 _reader.ReadBytes(0x1000);
                 PeekEventKey(out peekIndex, out peekFlags);
+
+                Debug.WriteLine($"  UNK 2: 0x{_reader.BaseStream.Position:x8}| Index: 0x{streamIndex:x2}, Flags: 0x{streamFlags:x2}");
 
                 if (!IsValidStreamIndex(peekIndex))
                 {
@@ -197,6 +206,9 @@ namespace KinectXEFTools
                     _reader.ReadBytes(0x5000);
 
                     PeekEventKey(out peekIndex, out peekFlags);
+
+                    Debug.WriteLine($"  UNK 3: 0x{_reader.BaseStream.Position:x8} | Index: 0x{streamIndex:x2}, Flags: 0x{streamFlags:x2}");
+
                     Debug.Assert(IsValidStreamIndex(peekIndex)); // Next one should be good
                 }
             }

@@ -79,7 +79,7 @@ namespace KinectXEFTools
 
         public override string ToString()
         {
-            return $"{RelativeTime} | {EventStream,20}::{EventIndex,-5} (frame {FrameIndex})";
+            return $"{RelativeTime,-16} | {EventStream,30}::{EventIndex,-5} (frame {FrameIndex})";
         }
     }
 }
